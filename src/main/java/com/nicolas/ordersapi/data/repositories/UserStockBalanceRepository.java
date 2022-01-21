@@ -5,30 +5,30 @@ import java.util.List;
 import java.util.Map;
 
 import com.nicolas.ordersapi.data.datasources.IUserStockBalanceDatasource;
-import com.nicolas.ordersapi.data.mappers.UserStockBalanceMapper;
+import com.nicolas.ordersapi.data.models.UserStockBalanceModel;
 import com.nicolas.ordersapi.domain.entities.UserStockBalanceEntity;
-import com.nicolas.ordersapi.domain.repositories.UserStockBalanceRepository;
+import com.nicolas.ordersapi.domain.repositories.IUserStockBalanceRepository;
 
 import io.vavr.control.Either;
 
-public class UserStockBalanceRepositoryImplementation extends UserStockBalanceRepository {
+public class UserStockBalanceRepository implements IUserStockBalanceRepository {
     private IUserStockBalanceDatasource datasource;
 
-    public UserStockBalanceRepositoryImplementation(IUserStockBalanceDatasource datasource) {
-        this.datasource = datasource;
+    public UserStockBalanceRepository(IUserStockBalanceDatasource userStockBalanceDatasource) {
+        datasource = userStockBalanceDatasource;
     }
     
 
     @Override
     public Either<Exception, UserStockBalanceEntity[]> getUserStockBalanceFromUser(UserStockBalanceEntity userStockBalance) {
-        var response = datasource.getUserStockBalanceFromUser(userStockBalance.idUser.toString());
+        var response = datasource.getUserStockBalanceFromUser(userStockBalance.id_user.toString());
 
         if (response.isLeft())
             return Either.left(response.getLeft());
         
         List<UserStockBalanceEntity> result = new ArrayList<>();
         for (Map<String, Object> map : response.get()) {
-            result.add(UserStockBalanceMapper.fromMap(map));
+            result.add(UserStockBalanceModel.fromMap(map));
         }
 
         return Either.right((UserStockBalanceEntity[])result.toArray());
@@ -36,14 +36,14 @@ public class UserStockBalanceRepositoryImplementation extends UserStockBalanceRe
 
     @Override
     public Either<Exception, UserStockBalanceEntity[]> getUserStockBalanceFromUserOfStock(UserStockBalanceEntity userStockBalance) {
-        var response = datasource.getUserStockBalanceFromUserOfStock(userStockBalance.idUser.toString(), userStockBalance.idStock.toString());
+        var response = datasource.getUserStockBalanceFromUserOfStock(userStockBalance.id_user.toString(), userStockBalance.id_stock.toString());
 
         if (response.isLeft())
             return Either.left(response.getLeft());
         
         List<UserStockBalanceEntity> result = new ArrayList<>();
         for (Map<String, Object> map : response.get()) {
-            result.add(UserStockBalanceMapper.fromMap(map));
+            result.add(UserStockBalanceModel.fromMap(map));
         }
 
         return Either.right((UserStockBalanceEntity[])result.toArray());
@@ -52,12 +52,12 @@ public class UserStockBalanceRepositoryImplementation extends UserStockBalanceRe
 
     @Override
     public Either<Exception, UserStockBalanceEntity> createUserStockBalance(UserStockBalanceEntity userStockBalance) {
-        var response = datasource.createUserStockBalance(UserStockBalanceMapper.toMap(userStockBalance));
+        var response = datasource.createUserStockBalance(UserStockBalanceModel.toMap((UserStockBalanceModel)userStockBalance));
 
         if (response.isLeft())
             return Either.left(response.getLeft());
 
-        return Either.right(UserStockBalanceMapper.fromMap(response.get()));
+        return Either.right(UserStockBalanceModel.fromMap(response.get()));
     }
     
 }

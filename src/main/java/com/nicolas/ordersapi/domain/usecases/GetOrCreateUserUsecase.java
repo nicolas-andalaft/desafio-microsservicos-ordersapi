@@ -4,14 +4,14 @@ import java.math.BigDecimal;
 
 import com.nicolas.ordersapi.core.IUsecase;
 import com.nicolas.ordersapi.domain.entities.UserEntity;
-import com.nicolas.ordersapi.domain.repositories.UserRepository;
+import com.nicolas.ordersapi.domain.repositories.IUserRepository;
 
 import io.vavr.control.Either;
 
 public class GetOrCreateUserUsecase implements IUsecase<UserEntity, UserEntity> {
-    private UserRepository repository;
+    private IUserRepository repository;
 
-    public GetOrCreateUserUsecase(UserRepository repository) {
+    public GetOrCreateUserUsecase(IUserRepository repository) {
         this.repository = repository;
     }
 
@@ -29,7 +29,7 @@ public class GetOrCreateUserUsecase implements IUsecase<UserEntity, UserEntity> 
         // Create user if no match was found 
         UserEntity newUser = new UserEntity();
         newUser.username = user.username;
-        newUser.dollarBalance = new BigDecimal(10000);
+        newUser.dollar_balance = new BigDecimal(10000);
 
         var userResult = repository.createUser(newUser);
 

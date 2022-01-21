@@ -7,14 +7,13 @@ import com.nicolas.ordersapi.data.datasources.IUserDatasource;
 import com.nicolas.ordersapi.data.datasources.IUserStockBalanceDatasource;
 import com.nicolas.ordersapi.data.datasources.postgre.PostgreUserDatasource;
 import com.nicolas.ordersapi.data.datasources.postgre.PostgreUserStockBalanceDatasource;
-import com.nicolas.ordersapi.data.mappers.UserMapper;
-import com.nicolas.ordersapi.data.mappers.UserStockBalanceMapper;
-import com.nicolas.ordersapi.data.repositories.UserRepositoryImplementation;
-import com.nicolas.ordersapi.data.repositories.UserStockBalanceRepositoryImplementation;
+import com.nicolas.ordersapi.data.models.UserModel;
+import com.nicolas.ordersapi.data.models.UserStockBalanceModel;
+import com.nicolas.ordersapi.data.repositories.UserRepository;
+import com.nicolas.ordersapi.data.repositories.UserStockBalanceRepository;
 import com.nicolas.ordersapi.domain.entities.UserEntity;
 import com.nicolas.ordersapi.domain.entities.UserStockBalanceEntity;
-import com.nicolas.ordersapi.domain.repositories.UserRepository;
-import com.nicolas.ordersapi.domain.repositories.UserStockBalanceRepository;
+import com.nicolas.ordersapi.domain.repositories.IUserStockBalanceRepository;
 import com.nicolas.ordersapi.domain.usecases.CreateUserStockBalanceUsecase;
 import com.nicolas.ordersapi.domain.usecases.GetOrCreateUserUsecase;
 
@@ -31,7 +30,7 @@ class OrdersAPI {
 	private IUserStockBalanceDatasource userStockBalanceDatasource;
 
 	private UserRepository userRepository;
-	private UserStockBalanceRepository userStockBalanceRepository;
+	private IUserStockBalanceRepository userStockBalanceRepository;
 
 	private GetOrCreateUserUsecase getOrCreUsecase;
 	private CreateUserStockBalanceUsecase createUserStockBalanceUsecase;
@@ -40,8 +39,8 @@ class OrdersAPI {
 		userDatasource = new PostgreUserDatasource();
 		userStockBalanceDatasource = new PostgreUserStockBalanceDatasource();
 
-		userRepository = new UserRepositoryImplementation(userDatasource);
-		userStockBalanceRepository = new UserStockBalanceRepositoryImplementation(userStockBalanceDatasource);
+		userRepository = new UserRepository(userDatasource);
+		userStockBalanceRepository = new UserStockBalanceRepository(userStockBalanceDatasource);
 
 		getOrCreUsecase = new GetOrCreateUserUsecase(userRepository);
 		createUserStockBalanceUsecase = new CreateUserStockBalanceUsecase(userStockBalanceRepository);
@@ -71,14 +70,14 @@ class OrdersAPI {
 		}
 		else {
 			resp.put("status", "OK");
-			resp.put("user", UserMapper.toMap(result.get()));
+			resp.put("user", UserModel.toMap((UserModel)result.get()));
 		}
 		
 		return resp;
 	}
 
 	@PostMapping("/order/new")
-	public Map<String, Object> createOrder(@RequestBody Map<String, Map<String, Object>> req) {
+	public Map<String, Object> createOrder(@RequestBody Map<String, Map<String, Map<String, Object>>> req) {
 		var resp = new HashMap<String, Object>(){};
 
 		
@@ -91,8 +90,8 @@ class OrdersAPI {
 			return resp;
 		}
 		
-		var order = UserStockBalanceMapper.fromMap((Map<String, Object>)orderMap);
-		System.out.println(order.idStock);
+		var order = UserStockBalanceModel.fromMap(orderMap);
+		System.out.println(order.id_stock);
 		var result = createUserStockBalanceUsecase.call(order);
 		
 		// Return null on Exception
