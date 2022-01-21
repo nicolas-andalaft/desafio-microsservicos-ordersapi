@@ -2,7 +2,13 @@ package com.nicolas.ordersapi.data.datasources.postgre;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.List;
+import java.util.Map;
+
+import com.nicolas.ordersapi.data.utils.ResultConverter;
 
 import io.vavr.control.Either;
 
@@ -23,5 +29,36 @@ public abstract class PostgreDatasource {
 			System.out.println(e.getMessage());
 			return Either.left(e);
 		}
+	}
+
+	protected Either<Exception, Map<String, Object>[]> execute(String sqlString, boolean query) {
+		var tryConnect = connect();
+        if (tryConnect.isLeft()) return Either.left(tryConnect.getLeft());
+
+		var conn = tryConnect.get();
+        Either<Exception, Map<String, Object>[]> result;
+		ResultSet rs;
+        
+		try {
+			Statement statement = conn.createStatement();
+			if (query)
+				rs = statement.executeQuery(sqlString);
+			else {
+				statement.execute(sqlString);
+				rs = statement.getResultSet();
+			}
+			
+            var response = ResultConverter.toMapArray(rs);
+			result = Either.right(response);
+
+		} catch (SQLException e) {
+			result = Either.left(e);
+		}
+
+		try {
+			conn.close();
+		} catch(Exception e) {}
+
+		return result;
 	}
 }

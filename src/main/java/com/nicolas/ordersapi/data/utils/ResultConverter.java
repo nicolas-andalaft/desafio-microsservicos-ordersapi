@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 public class ResultConverter {
-    public static List<Map<String, Object>> toMapList(ResultSet result) {
+    public static Map<String, Object>[] toMapArray(ResultSet result) {
         List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
 		try {
 			ResultSetMetaData metadata = result.getMetaData();
@@ -25,7 +25,7 @@ public class ResultConverter {
 			}
 		} catch (Exception e) {}
 
-		return list;
+		return (Map<String, Object>[])list.toArray();
     }
 
     public static Map<String, Object> toMap(ResultSet result) {

@@ -9,7 +9,7 @@ public class MapGetter {
     public static Integer getInt(Map<String, ?> map, String key) {
         try { 
             Object value = map.get(key);
-            return value == null ? null : (int)value;
+            return value == null ? null : Integer.parseInt(String.valueOf(value));
         } 
         catch (Exception e) { 
             ErrorMessage(e, key);
@@ -20,7 +20,7 @@ public class MapGetter {
     public static Long getLong(Map<String, ?> map, String key) {
         try { 
             Object value = map.get(key);
-            return value == null ? null : (Long)value;
+            return value == null ? null : Long.valueOf(String.valueOf(value));
         } 
         catch (Exception e) { 
             ErrorMessage(e, key);
@@ -31,7 +31,7 @@ public class MapGetter {
     public static Float getFloat(Map<String, ?> map, String key) {
         try { 
             Object value = map.get(key);
-            return value == null ? null : (Float)value;
+            return value == null ? null : Float.parseFloat(String.valueOf(value));
         } 
         catch (Exception e) { 
             ErrorMessage(e, key);
@@ -42,7 +42,7 @@ public class MapGetter {
     public static BigDecimal getBigDecimal(Map<String, ?> map, String key) {
         try { 
             Object value = map.get(key);
-            return value == null ? null : (BigDecimal)value;
+            return value == null ? null : BigDecimal.valueOf(Long.parseLong(String.valueOf(value)));
         } 
         catch (Exception e) { 
             ErrorMessage(e, key);
@@ -53,7 +53,7 @@ public class MapGetter {
     public static String getString(Map<String, ?> map, String key) {
         try { 
             Object value = map.get(key);
-            return value == null ? null : (String)value;
+            return value == null ? null : String.valueOf(value);
         } 
         catch (Exception e) { 
             ErrorMessage(e, key);
@@ -64,7 +64,7 @@ public class MapGetter {
     public static LocalDateTime getLocalDateTime(Map<String, ?> map, String key) {
         try { 
             Object value = map.get(key);
-            return value == null ? null : ((Timestamp)value).toLocalDateTime();
+            return value == null ? null : (Timestamp.valueOf(String.valueOf(value))).toLocalDateTime();
         } 
         catch (Exception e) { 
             ErrorMessage(e, key);

@@ -8,7 +8,7 @@ import com.nicolas.ordersapi.domain.repositories.UserRepository;
 
 import io.vavr.control.Either;
 
-public class GetOrCreateUserUsecase implements IUsecase<String, UserEntity> {
+public class GetOrCreateUserUsecase implements IUsecase<UserEntity, UserEntity> {
     private UserRepository repository;
 
     public GetOrCreateUserUsecase(UserRepository repository) {
@@ -16,9 +16,9 @@ public class GetOrCreateUserUsecase implements IUsecase<String, UserEntity> {
     }
 
     @Override
-    public Either<Exception, UserEntity>  call(String email)  {
+    public Either<Exception, UserEntity>  call(UserEntity user)  {
         // Search for user 
-        var result = repository.getUser(email);
+        var result = repository.getUser(user);
         if (result.isLeft()) return result;
         
         // Return found user
@@ -26,9 +26,9 @@ public class GetOrCreateUserUsecase implements IUsecase<String, UserEntity> {
             return Either.right(result.get());
         }
 
-        // Create user if no match was found
+        // Create user if no match was found 
         UserEntity newUser = new UserEntity();
-        newUser.username = email;
+        newUser.username = user.username;
         newUser.dollarBalance = new BigDecimal(10000);
 
         var userResult = repository.createUser(newUser);
@@ -37,7 +37,7 @@ public class GetOrCreateUserUsecase implements IUsecase<String, UserEntity> {
             return Either.left(userResult.getLeft());
         
         // Get created user
-        result = repository.getUser(email);
+        result = repository.getUser(user);
         return result;
     }
 }

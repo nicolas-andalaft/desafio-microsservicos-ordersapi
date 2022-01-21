@@ -16,13 +16,13 @@ public class UserRepositoryImplementation extends UserRepository {
     }
 
     @Override
-    public Either<Exception, UserEntity> getUser(String email) {
-        Either<Exception, Map<String, Object>> result = datasource.getUser(email);
-        if (result.isLeft())
-            return Either.left(result.getLeft());
+    public Either<Exception, UserEntity> getUser(UserEntity user) {
+        Either<Exception, Map<String, Object>> response = datasource.getUser(user.username);
+        if (response.isLeft())
+            return Either.left(response.getLeft());
         else {
-            UserEntity user = UserMapper.fromMap(result.get());
-            return Either.right(user);
+            UserEntity result = UserMapper.fromMap(response.get());
+            return Either.right(result);
         }
     }
 

@@ -1,5 +1,7 @@
 package com.nicolas.ordersapi.data.mappers;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -15,10 +17,10 @@ public class UserMapper {
 
   public static UserEntity fromMap(Map<String, Object> map) {
     UserEntity user = new UserEntity(
-      MapGetter.getLong(map, id),
-      MapGetter.getString(map, username),
-      MapGetter.getBigDecimal(map, dollarBalance),
-      MapGetter.getLocalDateTime(map, createdOn),
+      MapGetter.getLong(map, id ),
+      MapGetter.getString(map, username ),
+      MapGetter.getBigDecimal(map, dollarBalance ),
+      MapGetter.getLocalDateTime(map, createdOn ),
       MapGetter.getLocalDateTime(map, updatedOn)
     );
     return user;
