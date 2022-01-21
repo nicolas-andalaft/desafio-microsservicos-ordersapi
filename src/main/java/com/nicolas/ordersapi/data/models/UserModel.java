@@ -1,14 +1,11 @@
 package com.nicolas.ordersapi.data.models;
 
-
 import java.util.Map;
 
 import com.nicolas.ordersapi.data.utils.MapGetter;
 import com.nicolas.ordersapi.domain.entities.UserEntity;
 
 import io.vavr.collection.HashMap;
-
-
 
 public class UserModel extends UserEntity {
 

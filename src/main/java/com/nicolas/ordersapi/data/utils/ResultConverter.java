@@ -4,12 +4,14 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
+import io.vavr.collection.List;
+
+
 public class ResultConverter {
-    public static Map<String, Object>[] toMapArray(ResultSet result) {
-        List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+    public static List<Map<String, Object>> toMapList(ResultSet result) {
+        var list = new ArrayList<Map<String, Object>>();
 		try {
 			ResultSetMetaData metadata = result.getMetaData();
 			int columnCount = metadata.getColumnCount();
@@ -25,7 +27,7 @@ public class ResultConverter {
 			}
 		} catch (Exception e) {}
 
-		return (Map<String, Object>[])list.toArray();
+		return List.ofAll(list);
     }
 
     public static Map<String, Object> toMap(ResultSet result) {

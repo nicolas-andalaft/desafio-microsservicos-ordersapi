@@ -3,18 +3,18 @@ package com.nicolas.ordersapi.presentation.API;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.nicolas.ordersapi.data.datasources.IOrderDatasource;
 import com.nicolas.ordersapi.data.datasources.IUserDatasource;
-import com.nicolas.ordersapi.data.datasources.IUserStockBalanceDatasource;
 import com.nicolas.ordersapi.data.datasources.postgre.PostgreUserDatasource;
-import com.nicolas.ordersapi.data.datasources.postgre.PostgreUserStockBalanceDatasource;
+import com.nicolas.ordersapi.data.datasources.postgre.PostgreeOrderDatasource;
+import com.nicolas.ordersapi.data.models.OrderModel;
 import com.nicolas.ordersapi.data.models.UserModel;
-import com.nicolas.ordersapi.data.models.UserStockBalanceModel;
+import com.nicolas.ordersapi.data.repositories.OrderRepository;
 import com.nicolas.ordersapi.data.repositories.UserRepository;
-import com.nicolas.ordersapi.data.repositories.UserStockBalanceRepository;
 import com.nicolas.ordersapi.domain.entities.UserEntity;
-import com.nicolas.ordersapi.domain.entities.UserStockBalanceEntity;
-import com.nicolas.ordersapi.domain.repositories.IUserStockBalanceRepository;
-import com.nicolas.ordersapi.domain.usecases.CreateUserStockBalanceUsecase;
+import com.nicolas.ordersapi.domain.repositories.IOrderRepository;
+import com.nicolas.ordersapi.domain.repositories.IUserRepository;
+import com.nicolas.ordersapi.domain.usecases.CreateOrderUsecase;
 import com.nicolas.ordersapi.domain.usecases.GetOrCreateUserUsecase;
 
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -23,27 +23,36 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.vavr.control.Either;
+
 @RestController
 @CrossOrigin
 class OrdersAPI {
+
+	// Datasource interfaces
 	private IUserDatasource userDatasource;
-	private IUserStockBalanceDatasource userStockBalanceDatasource;
-
-	private UserRepository userRepository;
-	private IUserStockBalanceRepository userStockBalanceRepository;
-
+	private IOrderDatasource orderDatasource;
+	
+	// Repository interfaces
+	private IUserRepository userRepository;
+	private IOrderRepository orderRepository;
+	
+	// Usecases
 	private GetOrCreateUserUsecase getOrCreUsecase;
-	private CreateUserStockBalanceUsecase createUserStockBalanceUsecase;
+	private CreateOrderUsecase createOrderUsecase;
 
 	public OrdersAPI() {
+		// Datasource implementations
 		userDatasource = new PostgreUserDatasource();
-		userStockBalanceDatasource = new PostgreUserStockBalanceDatasource();
+		orderDatasource = new PostgreeOrderDatasource();
 
+		// Repository implementations
 		userRepository = new UserRepository(userDatasource);
-		userStockBalanceRepository = new UserStockBalanceRepository(userStockBalanceDatasource);
-
+		orderRepository = new OrderRepository(orderDatasource);
+		
+		// Usecase instances
 		getOrCreUsecase = new GetOrCreateUserUsecase(userRepository);
-		createUserStockBalanceUsecase = new CreateUserStockBalanceUsecase(userStockBalanceRepository);
+		createOrderUsecase = new CreateOrderUsecase(orderRepository);
 	}
 	
 	@PostMapping("/user")
@@ -77,9 +86,8 @@ class OrdersAPI {
 	}
 
 	@PostMapping("/order/new")
-	public Map<String, Object> createOrder(@RequestBody Map<String, Map<String, Map<String, Object>>> req) {
+	public Map<String, Object> createOrder(@RequestBody Map<String, Map<String, Object>> req) {
 		var resp = new HashMap<String, Object>(){};
-
 		
         var data = req.get("body");
 		var orderMap = data.get("order");
@@ -90,23 +98,15 @@ class OrdersAPI {
 			return resp;
 		}
 		
-		var order = UserStockBalanceModel.fromMap(orderMap);
-		System.out.println(order.id_stock);
-		var result = createUserStockBalanceUsecase.call(order);
+		Either<Exception, Integer> result;
+		try {
+			var order = OrderModel.fromMap((Map<String, Object>)orderMap);
+			result = createOrderUsecase.call(order);
+		} catch (Exception e) {
+			result = Either.left(e);
+		}		
 		
-		// Return null on Exception
-		if (result.isLeft()) {
-			resp.put("status", "ERROR");
-			resp.put("errorMessage", result.getLeft());
-			System.out.println(result.getLeft());
-		}
-		else {
-			resp.put("status", "OK");
-			resp.put("user", result.get());
-			System.out.println(result.get());
-		}
-		
-		return resp;
+		return resultChecker(result);
 	}
 
 	@GetMapping("/")
@@ -114,4 +114,20 @@ class OrdersAPI {
 
 	@GetMapping("/error")
 	public void error() {}
+
+	private Map<String, Object> resultChecker(Either<Exception, ?> result) {
+		var resp = new HashMap<String, Object>(){};
+
+		if (result.isLeft()) {
+			resp.put("status", "ERROR");
+			resp.put("errorMessage", result.getLeft());
+			System.err.println(result.getLeft());
+		}
+		else {
+			resp.put("status", "OK");
+			resp.put("user", result.get());
+		}
+
+		return resp;
+	}
 }

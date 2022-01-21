@@ -2,13 +2,13 @@ package com.nicolas.ordersapi.data.datasources.postgre;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Map;
 
 import com.nicolas.ordersapi.data.utils.ResultConverter;
 
+import io.vavr.collection.List;
 import io.vavr.control.Either;
 
 public abstract class PostgreDatasource {
@@ -30,25 +30,43 @@ public abstract class PostgreDatasource {
 		}
 	}
 
-	protected Either<Exception, Map<String, Object>[]> execute(String sqlString, boolean query) {
+	protected Either<Exception, List<Map<String, Object>>> executeQuery(String sqlString) {
 		var tryConnect = connect();
         if (tryConnect.isLeft()) return Either.left(tryConnect.getLeft());
 
 		var conn = tryConnect.get();
-        Either<Exception, Map<String, Object>[]> result;
-		ResultSet rs;
+        Either<Exception, List<Map<String, Object>>> result;
         
 		try {
 			Statement statement = conn.createStatement();
-			if (query)
-				rs = statement.executeQuery(sqlString);
-			else {
-				statement.execute(sqlString);
-				rs = statement.getResultSet();
-			}
-			
-            var response = ResultConverter.toMapArray(rs);
+			var rs = statement.executeQuery(sqlString);
+	
+            var response = ResultConverter.toMapList(rs);
 			result = Either.right(response);
+
+		} catch (SQLException e) {
+			result = Either.left(e);
+		}
+
+		try {
+			conn.close();
+		} catch(Exception e) {}
+
+		return result;
+	}
+
+	protected Either<Exception, Integer> executeUpdate(String sqlString) {
+		var tryConnect = connect();
+        if (tryConnect.isLeft()) return Either.left(tryConnect.getLeft());
+
+		var conn = tryConnect.get();
+        Either<Exception, Integer> result;
+        
+		try {
+			Statement statement = conn.createStatement();
+			var affected = statement.executeUpdate(sqlString);
+			
+			result = Either.right(affected);
 
 		} catch (SQLException e) {
 			result = Either.left(e);
