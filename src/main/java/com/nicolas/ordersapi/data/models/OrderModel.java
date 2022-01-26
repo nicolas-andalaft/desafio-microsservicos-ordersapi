@@ -8,6 +8,22 @@ import io.vavr.collection.HashMap;
 
 public class OrderModel extends OrderEntity {
 
+    public OrderModel() {}
+
+    public OrderModel(OrderEntity order) {
+        this.id = order.id;
+        this.id_user = order.id_user;
+        this.id_stock = order.id_stock;
+        this.stock_symbol = order.stock_symbol;
+        this.stock_name = order.stock_name;
+        this.volume = order.volume;
+        this.price = order.price;
+        this.type = order.type;
+        this.status = order.status;
+        this.created_on = order.created_on;
+        this.updated_on = order.updated_on;
+    }
+
     public static OrderModel fromMap(Map<String, Object> map) {
         OrderModel userOrder = new OrderModel();
         userOrder.id = MapGetter.getLong(map, "id");
@@ -25,7 +41,7 @@ public class OrderModel extends OrderEntity {
         return userOrder;
     }   
         
-    public static Map<String, Object> toMap(OrderModel userOrder) {
+    public static Map<String, Object> toMap(OrderEntity userOrder) {
         HashMap<String, Object> map = HashMap.of(
             "id", userOrder.id,
             "id_user", userOrder.id_user,

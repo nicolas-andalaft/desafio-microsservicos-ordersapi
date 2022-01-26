@@ -7,7 +7,7 @@ import io.vavr.control.Either;
 public interface IUserStockBalanceRepository {
     public Either<Exception, UserStockBalanceEntity[]> getUserStockBalanceFromUser(UserStockBalanceEntity userStockBalance);
 
-    public Either<Exception, UserStockBalanceEntity[]> getUserStockBalanceFromUserOfStock(UserStockBalanceEntity userStockBalance);  
+    public Either<Exception, UserStockBalanceEntity> getUserStockBalanceFromUserOfStock(UserStockBalanceEntity userStockBalance);  
 
-    public Either<Exception, UserStockBalanceEntity> createUserStockBalance(UserStockBalanceEntity userStockBalance);   
+    public Either<Exception, Integer> createOrUpdateUserStockBalanceFromUserOfStock(UserStockBalanceEntity userStockBalance);   
 }

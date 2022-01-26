@@ -5,9 +5,9 @@ import com.nicolas.ordersapi.data.models.OrderModel;
 
 import io.vavr.control.Either;
 
-public class PostgreeOrderDatasource extends PostgreDatasource implements IOrderDatasource {
+public class PostgreOrderDatasource extends PostgreDatasource implements IOrderDatasource {
 
-    public PostgreeOrderDatasource() {
+    public PostgreOrderDatasource() {
 		super.databaseUrl = "localhost:5432";
 		super.databaseName = "orders_db";
 		super.username = "postgres";

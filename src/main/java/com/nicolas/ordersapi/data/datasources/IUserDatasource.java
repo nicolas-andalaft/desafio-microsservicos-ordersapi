@@ -1,10 +1,11 @@
 package com.nicolas.ordersapi.data.datasources;
 
-import java.util.Map;
+import com.nicolas.ordersapi.data.models.UserModel;
+
 import io.vavr.control.Either;
 
 public interface IUserDatasource {
-
-    public Either<Exception, Map<String, Object>> getUser(String email);
-    public Either<Exception, Boolean> createUser(Map<String, Object> user);
+    public Either<Exception, UserModel> getUser(UserModel user);
+    public Either<Exception, Integer> createUser(UserModel user);
+    public Either<Exception, Integer> adjustDollarBalance(UserModel user);
 }

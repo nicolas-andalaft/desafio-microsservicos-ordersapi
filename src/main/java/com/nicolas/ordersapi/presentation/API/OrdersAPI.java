@@ -5,15 +5,18 @@ import java.util.Map;
 
 import com.nicolas.ordersapi.data.datasources.IOrderDatasource;
 import com.nicolas.ordersapi.data.datasources.IUserDatasource;
+import com.nicolas.ordersapi.data.datasources.IUserStockBalanceDatasource;
 import com.nicolas.ordersapi.data.datasources.postgre.PostgreUserDatasource;
-import com.nicolas.ordersapi.data.datasources.postgre.PostgreeOrderDatasource;
+import com.nicolas.ordersapi.data.datasources.postgre.PostgreUserStockBalanceDatasource;
+import com.nicolas.ordersapi.data.datasources.postgre.PostgreOrderDatasource;
 import com.nicolas.ordersapi.data.models.OrderModel;
-import com.nicolas.ordersapi.data.models.UserModel;
 import com.nicolas.ordersapi.data.repositories.OrderRepository;
 import com.nicolas.ordersapi.data.repositories.UserRepository;
+import com.nicolas.ordersapi.data.repositories.UserStockBalanceRepository;
 import com.nicolas.ordersapi.domain.entities.UserEntity;
 import com.nicolas.ordersapi.domain.repositories.IOrderRepository;
 import com.nicolas.ordersapi.domain.repositories.IUserRepository;
+import com.nicolas.ordersapi.domain.repositories.IUserStockBalanceRepository;
 import com.nicolas.ordersapi.domain.usecases.CreateOrderUsecase;
 import com.nicolas.ordersapi.domain.usecases.GetOrCreateUserUsecase;
 
@@ -32,10 +35,12 @@ class OrdersAPI {
 	// Datasource interfaces
 	private IUserDatasource userDatasource;
 	private IOrderDatasource orderDatasource;
+	private IUserStockBalanceDatasource userStockBalanceDatasource;
 	
 	// Repository interfaces
 	private IUserRepository userRepository;
 	private IOrderRepository orderRepository;
+	private IUserStockBalanceRepository userStockBalanceRepository;
 	
 	// Usecases
 	private GetOrCreateUserUsecase getOrCreUsecase;
@@ -44,15 +49,17 @@ class OrdersAPI {
 	public OrdersAPI() {
 		// Datasource implementations
 		userDatasource = new PostgreUserDatasource();
-		orderDatasource = new PostgreeOrderDatasource();
+		orderDatasource = new PostgreOrderDatasource();
+		userStockBalanceDatasource = new PostgreUserStockBalanceDatasource();
 
 		// Repository implementations
 		userRepository = new UserRepository(userDatasource);
 		orderRepository = new OrderRepository(orderDatasource);
+		userStockBalanceRepository = new UserStockBalanceRepository(userStockBalanceDatasource);
 		
 		// Usecase instances
 		getOrCreUsecase = new GetOrCreateUserUsecase(userRepository);
-		createOrderUsecase = new CreateOrderUsecase(orderRepository);
+		createOrderUsecase = new CreateOrderUsecase(orderRepository, userStockBalanceRepository, userRepository);
 	}
 	
 	@PostMapping("/user")
@@ -72,20 +79,11 @@ class OrdersAPI {
 		user.username = email.toString();
 		var result = getOrCreUsecase.call(user);
 		
-		// Return null on Exception
-		if (result.isLeft()) {
-			resp.put("status", "ERROR");
-			resp.put("errorMessage", result.getLeft());
-		}
-		else {
-			resp.put("status", "OK");
-			resp.put("user", UserModel.toMap((UserModel)result.get()));
-		}
-		
-		return resp;
+		return resultChecker(result, "user");
 	}
 
 	@PostMapping("/order/new")
+	@SuppressWarnings("unchecked")
 	public Map<String, Object> createOrder(@RequestBody Map<String, Map<String, Object>> req) {
 		var resp = new HashMap<String, Object>(){};
 		
@@ -106,7 +104,7 @@ class OrdersAPI {
 			result = Either.left(e);
 		}		
 		
-		return resultChecker(result);
+		return resultChecker(result, "affectedRows");
 	}
 
 	@GetMapping("/")
@@ -115,7 +113,7 @@ class OrdersAPI {
 	@GetMapping("/error")
 	public void error() {}
 
-	private Map<String, Object> resultChecker(Either<Exception, ?> result) {
+	private Map<String, Object> resultChecker(Either<Exception, ?> result, String mapKey) {
 		var resp = new HashMap<String, Object>(){};
 
 		if (result.isLeft()) {
@@ -125,7 +123,7 @@ class OrdersAPI {
 		}
 		else {
 			resp.put("status", "OK");
-			resp.put("user", result.get());
+			resp.put(mapKey, result.get());
 		}
 
 		return resp;

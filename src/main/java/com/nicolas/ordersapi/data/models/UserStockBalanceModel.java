@@ -8,6 +8,18 @@ import com.nicolas.ordersapi.domain.entities.UserStockBalanceEntity;
 import io.vavr.collection.HashMap;
 
 public class UserStockBalanceModel extends UserStockBalanceEntity {
+
+    public UserStockBalanceModel() {}
+
+    public UserStockBalanceModel(UserStockBalanceEntity userStockBalance) {
+        this.id_user = userStockBalance.id_user;
+        this.id_stock = userStockBalance.id_stock;
+        this.stock_symbol = userStockBalance.stock_symbol;
+        this.stock_name = userStockBalance.stock_name;
+        this.volume = userStockBalance.volume;
+        this.created_on = userStockBalance.created_on;
+        this.updated_on = userStockBalance.updated_on;
+    }
     
     public static UserStockBalanceModel fromMap(Map<String, Object> map) {
         UserStockBalanceModel userStockBalance = new UserStockBalanceModel();
@@ -22,7 +34,7 @@ public class UserStockBalanceModel extends UserStockBalanceEntity {
         return userStockBalance;
     }   
         
-    public static Map<String, Object> toMap(UserStockBalanceModel userStockBalance) {
+    public static Map<String, Object> toMap(UserStockBalanceEntity userStockBalance) {
         HashMap<String, Object> map = HashMap.of(
             "id_user", userStockBalance.id_user,
             "id_stock", userStockBalance.id_stock,

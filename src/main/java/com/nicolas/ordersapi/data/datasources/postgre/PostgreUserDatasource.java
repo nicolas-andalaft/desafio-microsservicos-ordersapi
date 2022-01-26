@@ -1,11 +1,9 @@
 package com.nicolas.ordersapi.data.datasources.postgre;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.Map;
+import java.math.BigDecimal;
+
 import com.nicolas.ordersapi.data.datasources.IUserDatasource;
-import com.nicolas.ordersapi.data.utils.ResultConverter;
+import com.nicolas.ordersapi.data.models.UserModel;
 
 import io.vavr.control.Either;
 
@@ -19,58 +17,31 @@ public class PostgreUserDatasource extends PostgreDatasource implements IUserDat
 		super.tableName = "users";
 	}
 
-    public Either<Exception, Map<String, Object>> getUser(String email) {
-        var tryConnect = connect();
-        if (tryConnect.isLeft()) return Either.left(tryConnect.getLeft());
+    public Either<Exception, UserModel> getUser(UserModel user) {
+		var sqlString = String.format("SELECT * FROM %s WHERE username = '%s'", super.tableName, user.username);
 
-		var conn = tryConnect.get();
-        Either<Exception, Map<String, Object>> result;
-
-        try {
-			Statement statement = conn.createStatement();
-			ResultSet rs = statement.executeQuery(String.format("SELECT * FROM %s WHERE username = '%s'", super.tableName, email));
-			
-            Map<String, Object> user = ResultConverter.toMap(rs);
-			result = Either.right(user);
-
-		} catch (SQLException e) {
-			result = Either.left(e);
-		}
-
-		try {
-			conn.close();
-		} catch(Exception e) {}
-
-		return result;
+		return super.executeQuery(sqlString).map((list) -> { 
+			if (list.length() != 1) return null;
+			return UserModel.fromMap(list.get(0));
+		});
+        
     }
 
 	@Override
-	public Either<Exception, Boolean> createUser(Map<String, Object> user) {
-		var tryConnect = connect();
-        if (tryConnect.isLeft()) return Either.left(tryConnect.getLeft());
+	public Either<Exception, Integer> createUser(UserModel user) {
+		var sqlString = String.format("INSERT INTO %s(%s,%s,%s) VALUES('%s','%s',%s)", 
+		super.tableName, 
+		"username", "password", "dollar_balance", 
+		user.username, "", user.dollar_balance);
 
-		var conn = tryConnect.get();
-		Either<Exception, Boolean> result;
+		return super.executeUpdate(sqlString);
+	}
 
+	@Override
+	public Either<Exception, Integer> adjustDollarBalance(UserModel user) {
+		var sqlString = String.format("UPDATE %s SET dollar_balance = dollar_balance + %s WHERE id = %s", 
+		super.tableName, user.dollar_balance, user.id);
 
-        try {
-			Statement statement = conn.createStatement();
-			
-			var status = statement.execute(String.format("INSERT INTO %s(%s,%s,%s) VALUES('%s','%s',%s)", 
-				super.tableName, 
-				"username", "password", "dollar_balance", 
-				user.get("username"), user.get("password"), user.get("dollar_balance")));
-
-			result = Either.right(status);
-			
-		} catch (SQLException e) {
-			result = Either.left(e);
-		}
-
-		try {
-			conn.close();
-		} catch(Exception e) {}
-
-		return result;
+		return super.executeUpdate(sqlString);
 	}
 }
