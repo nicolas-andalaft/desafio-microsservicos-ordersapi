@@ -4,9 +4,11 @@ import java.math.BigDecimal;
 
 import com.nicolas.ordersapi.core.IUsecase;
 import com.nicolas.ordersapi.domain.entities.OrderEntity;
+import com.nicolas.ordersapi.domain.entities.StockEntity;
 import com.nicolas.ordersapi.domain.entities.UserEntity;
 import com.nicolas.ordersapi.domain.entities.UserStockBalanceEntity;
 import com.nicolas.ordersapi.domain.repositories.IOrderRepository;
+import com.nicolas.ordersapi.domain.repositories.IStockRepository;
 import com.nicolas.ordersapi.domain.repositories.IUserRepository;
 import com.nicolas.ordersapi.domain.repositories.IUserStockBalanceRepository;
 
@@ -16,15 +18,18 @@ public class CreateOrderUsecase implements IUsecase<OrderEntity, Integer> {
     private IOrderRepository orderRepository;
     private IUserStockBalanceRepository userStockBalanceRepository;
     private IUserRepository userRepository;
+    private IStockRepository stockRepository;
 
     public CreateOrderUsecase(
         IOrderRepository orderRepository, 
         IUserStockBalanceRepository userStockBalanceRepository, 
-        IUserRepository userRepository
+        IUserRepository userRepository,
+        IStockRepository stockRepository
         ) {
         this.orderRepository = orderRepository;
         this.userStockBalanceRepository = userStockBalanceRepository;
         this.userRepository = userRepository;
+        this.stockRepository = stockRepository;
     }
 
     @Override
@@ -35,6 +40,18 @@ public class CreateOrderUsecase implements IUsecase<OrderEntity, Integer> {
         // "open" status default value
         order.status = 0;
 
+        var stock = new StockEntity();
+        stock.id = order.id;
+
+        // Get correct stock name and symbol
+        var stockResult = stockRepository.getStock(stock);
+        if (stockResult.isLeft())
+            return Either.left(stockResult.getLeft());
+
+        order.stock_name = stockResult.get().stock_name;
+        order.stock_symbol = stockResult.get().stock_symbol;
+
+        // Create order
         var orderResult = orderRepository.createOrder(order);
         if (orderResult.isLeft())
             return Either.left(orderResult.getLeft());

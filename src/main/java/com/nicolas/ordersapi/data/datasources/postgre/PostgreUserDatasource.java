@@ -1,7 +1,5 @@
 package com.nicolas.ordersapi.data.datasources.postgre;
 
-import java.math.BigDecimal;
-
 import com.nicolas.ordersapi.data.datasources.IUserDatasource;
 import com.nicolas.ordersapi.data.models.UserModel;
 

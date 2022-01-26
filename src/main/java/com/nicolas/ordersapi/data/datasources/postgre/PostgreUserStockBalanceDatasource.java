@@ -2,6 +2,7 @@ package com.nicolas.ordersapi.data.datasources.postgre;
 
 import com.nicolas.ordersapi.data.datasources.IUserStockBalanceDatasource;
 import com.nicolas.ordersapi.data.models.UserStockBalanceModel;
+import com.nicolas.ordersapi.data.utils.DateTimeFormat;
 
 import io.vavr.control.Either;
 
@@ -47,9 +48,11 @@ public class PostgreUserStockBalanceDatasource extends PostgreDatasource impleme
     }
 
     @Override
-    public Either<Exception, Integer> updateUserStockBalanceFromUserOfStock(UserStockBalanceModel userStockBalance) {
-        var sqlString = String.format("UPDATE %s SET volume = %s, updated_on = %s WHERE id_user = %s AND id_stock = %s", 
-        tableName, userStockBalance.volume, userStockBalance.updated_on, userStockBalance.id_user, userStockBalance.id_stock);
+    public Either<Exception, Integer> adjustUserStockBalanceFromUserOfStock(UserStockBalanceModel userStockBalance) {
+        var updated_on = DateTimeFormat.toString(userStockBalance.updated_on);
+
+        var sqlString = String.format("UPDATE %s SET volume = volume + %s, updated_on = '%s' WHERE id_user = %s AND id_stock = %s", 
+        tableName, userStockBalance.volume, updated_on, userStockBalance.id_user, userStockBalance.id_stock);
 
         return super.executeUpdate(sqlString);
     }

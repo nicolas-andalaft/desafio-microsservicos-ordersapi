@@ -35,8 +35,8 @@ public class OrderModel extends OrderEntity {
         userOrder.price = MapGetter.getBigDecimal(map, "price");
         userOrder.type = MapGetter.getInt(map, "type");
         userOrder.status = MapGetter.getInt(map, "status");
-        userOrder.created_on = MapGetter.getLocalDateTime(map, "createdOn");
-        userOrder.updated_on = MapGetter.getLocalDateTime(map, "updatedOn");
+        userOrder.created_on = MapGetter.getLocalDateTime(map, "created_on");
+        userOrder.updated_on = MapGetter.getLocalDateTime(map, "updated_on");
         
         return userOrder;
     }   

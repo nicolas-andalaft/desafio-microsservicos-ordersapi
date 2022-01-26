@@ -24,5 +24,4 @@ public class PostgreOrderDatasource extends PostgreDatasource implements IOrderD
 
         return super.executeUpdate(sqlString);
     }
-    
 }

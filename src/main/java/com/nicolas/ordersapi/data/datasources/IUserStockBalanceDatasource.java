@@ -8,5 +8,5 @@ public interface IUserStockBalanceDatasource {
     public abstract Either<Exception, UserStockBalanceModel[]> getUserStockBalancesFromUser(UserStockBalanceModel userStockBalance);
     public abstract Either<Exception, UserStockBalanceModel> getUserStockBalanceFromUserOfStock(UserStockBalanceModel userStockBalance);
     public abstract Either<Exception, Integer> createUserStockBalance(UserStockBalanceModel userStockBalance);
-    public abstract Either<Exception, Integer> updateUserStockBalanceFromUserOfStock(UserStockBalanceModel userStockBalance);
+    public abstract Either<Exception, Integer> adjustUserStockBalanceFromUserOfStock(UserStockBalanceModel userStockBalance);
 }

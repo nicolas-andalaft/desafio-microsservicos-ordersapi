@@ -4,17 +4,21 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.nicolas.ordersapi.data.datasources.IOrderDatasource;
+import com.nicolas.ordersapi.data.datasources.IStockDatasource;
 import com.nicolas.ordersapi.data.datasources.IUserDatasource;
 import com.nicolas.ordersapi.data.datasources.IUserStockBalanceDatasource;
+import com.nicolas.ordersapi.data.datasources.API.StockAPIDatasource;
 import com.nicolas.ordersapi.data.datasources.postgre.PostgreUserDatasource;
 import com.nicolas.ordersapi.data.datasources.postgre.PostgreUserStockBalanceDatasource;
 import com.nicolas.ordersapi.data.datasources.postgre.PostgreOrderDatasource;
 import com.nicolas.ordersapi.data.models.OrderModel;
 import com.nicolas.ordersapi.data.repositories.OrderRepository;
+import com.nicolas.ordersapi.data.repositories.StockRepository;
 import com.nicolas.ordersapi.data.repositories.UserRepository;
 import com.nicolas.ordersapi.data.repositories.UserStockBalanceRepository;
 import com.nicolas.ordersapi.domain.entities.UserEntity;
 import com.nicolas.ordersapi.domain.repositories.IOrderRepository;
+import com.nicolas.ordersapi.domain.repositories.IStockRepository;
 import com.nicolas.ordersapi.domain.repositories.IUserRepository;
 import com.nicolas.ordersapi.domain.repositories.IUserStockBalanceRepository;
 import com.nicolas.ordersapi.domain.usecases.CreateOrderUsecase;
@@ -36,11 +40,13 @@ class OrdersAPI {
 	private IUserDatasource userDatasource;
 	private IOrderDatasource orderDatasource;
 	private IUserStockBalanceDatasource userStockBalanceDatasource;
+	private IStockDatasource stockDatasource;
 	
 	// Repository interfaces
 	private IUserRepository userRepository;
 	private IOrderRepository orderRepository;
 	private IUserStockBalanceRepository userStockBalanceRepository;
+	private IStockRepository stockRepository;
 	
 	// Usecases
 	private GetOrCreateUserUsecase getOrCreUsecase;
@@ -51,15 +57,17 @@ class OrdersAPI {
 		userDatasource = new PostgreUserDatasource();
 		orderDatasource = new PostgreOrderDatasource();
 		userStockBalanceDatasource = new PostgreUserStockBalanceDatasource();
+		stockDatasource = new StockAPIDatasource();
 
 		// Repository implementations
 		userRepository = new UserRepository(userDatasource);
 		orderRepository = new OrderRepository(orderDatasource);
 		userStockBalanceRepository = new UserStockBalanceRepository(userStockBalanceDatasource);
+		stockRepository = new StockRepository(stockDatasource);
 		
 		// Usecase instances
 		getOrCreUsecase = new GetOrCreateUserUsecase(userRepository);
-		createOrderUsecase = new CreateOrderUsecase(orderRepository, userStockBalanceRepository, userRepository);
+		createOrderUsecase = new CreateOrderUsecase(orderRepository, userStockBalanceRepository, userRepository, stockRepository);
 	}
 	
 	@PostMapping("/user")

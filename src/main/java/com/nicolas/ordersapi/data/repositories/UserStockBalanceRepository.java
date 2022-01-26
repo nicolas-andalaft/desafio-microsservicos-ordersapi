@@ -1,5 +1,7 @@
 package com.nicolas.ordersapi.data.repositories;
 
+import java.time.LocalDateTime;
+
 import com.nicolas.ordersapi.data.datasources.IUserStockBalanceDatasource;
 import com.nicolas.ordersapi.data.models.UserStockBalanceModel;
 import com.nicolas.ordersapi.domain.entities.UserStockBalanceEntity;
@@ -40,8 +42,10 @@ public class UserStockBalanceRepository implements IUserStockBalanceRepository {
         if (search.get() == null)
             // Create balance if it does not exist
             return datasource.createUserStockBalance(userStockBalanceModel);
-        else
+        else {
             // Update balance if it does
-            return datasource.updateUserStockBalanceFromUserOfStock(userStockBalanceModel);
+            userStockBalanceModel.updated_on = LocalDateTime.now();
+            return datasource.adjustUserStockBalanceFromUserOfStock(userStockBalanceModel);
+        }
     }
 }

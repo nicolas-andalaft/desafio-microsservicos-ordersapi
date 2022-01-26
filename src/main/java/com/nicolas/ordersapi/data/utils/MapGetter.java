@@ -64,7 +64,7 @@ public class MapGetter {
     public static LocalDateTime getLocalDateTime(Map<String, Object> map, String key) {
         try { 
             Object value = map.get(key);
-            return value == null ? null : (Timestamp.valueOf(value.toString())).toLocalDateTime();
+            return value == null ? null : DateTimeFormat.fromString(value.toString());
         } 
         catch (Exception e) { 
             ErrorMessage(e, key);
