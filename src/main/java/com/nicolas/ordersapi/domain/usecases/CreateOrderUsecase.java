@@ -5,11 +5,9 @@ import java.math.BigDecimal;
 import com.nicolas.ordersapi.core.IUsecase;
 import com.nicolas.ordersapi.domain.entities.OrderEntity;
 import com.nicolas.ordersapi.domain.entities.StockEntity;
-import com.nicolas.ordersapi.domain.entities.UserEntity;
 import com.nicolas.ordersapi.domain.entities.UserStockBalanceEntity;
 import com.nicolas.ordersapi.domain.repositories.IOrderRepository;
 import com.nicolas.ordersapi.domain.repositories.IStockRepository;
-import com.nicolas.ordersapi.domain.repositories.IUserRepository;
 import com.nicolas.ordersapi.domain.repositories.IUserStockBalanceRepository;
 
 import io.vavr.control.Either;
@@ -17,18 +15,15 @@ import io.vavr.control.Either;
 public class CreateOrderUsecase implements IUsecase<OrderEntity, Integer> {
     private IOrderRepository orderRepository;
     private IUserStockBalanceRepository userStockBalanceRepository;
-    private IUserRepository userRepository;
     private IStockRepository stockRepository;
 
     public CreateOrderUsecase(
         IOrderRepository orderRepository, 
         IUserStockBalanceRepository userStockBalanceRepository, 
-        IUserRepository userRepository,
         IStockRepository stockRepository
         ) {
         this.orderRepository = orderRepository;
         this.userStockBalanceRepository = userStockBalanceRepository;
-        this.userRepository = userRepository;
         this.stockRepository = stockRepository;
     }
 
@@ -65,17 +60,6 @@ public class CreateOrderUsecase implements IUsecase<OrderEntity, Integer> {
         userStockBalance.volume = order.volume;
 
         var userStockBalanceResult = userStockBalanceRepository.createOrUpdateUserStockBalanceFromUserOfStock(userStockBalance);
-        if (userStockBalanceResult.isLeft())
-            return Either.left(userStockBalanceResult.getLeft());
-
-        // User dollar balance update
-        var user = new UserEntity();
-        user.id = order.id_user;
-
-        // Adjust value = price * volume * -1
-        var volume = BigDecimal.valueOf(order.volume);
-        user.dollar_balance = order.price.multiply(volume).negate();
-
-        return userRepository.adjustDollarBalance(user);
+        return Either.left(userStockBalanceResult.getLeft());
     }  
 }

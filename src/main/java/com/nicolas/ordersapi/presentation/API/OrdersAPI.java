@@ -71,7 +71,7 @@ class OrdersAPI {
 		
 		// Usecase instances
 		getOrCreUsecase = new GetOrCreateUserUsecase(userRepository);
-		createOrderUsecase = new CreateOrderUsecase(orderRepository, userStockBalanceRepository, userRepository, stockRepository);
+		createOrderUsecase = new CreateOrderUsecase(orderRepository, userStockBalanceRepository, stockRepository);
 		getUserOrdersUsecase = new GetUserOrdersUsecase(orderRepository);
 	}
 
