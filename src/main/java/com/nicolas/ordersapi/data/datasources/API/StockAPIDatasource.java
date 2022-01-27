@@ -1,5 +1,7 @@
 package com.nicolas.ordersapi.data.datasources.API;
 
+import java.util.Map;
+
 import com.nicolas.ordersapi.data.datasources.IStockDatasource;
 import com.nicolas.ordersapi.data.models.StockModel;
 import com.nicolas.ordersapi.domain.entities.StockEntity;
@@ -13,10 +15,11 @@ public class StockAPIDatasource extends APIDatasource implements IStockDatasourc
 	}
 
     @Override
-    public Either<Exception, StockModel> getStock(StockEntity stock) {
-        var response = super.get(super.baseUrl + "/stocks");
-        return response.map((e) -> {
-            return StockModel.fromMap(e[0]);
+    @SuppressWarnings("unchecked")
+    public Either<Exception, StockEntity> getStock(StockEntity stock) {
+        var response = super.get(super.baseUrl + "/stocks/" + stock.id, false);
+        return response.map((map) -> {
+            return StockModel.fromMap((Map<String, Object>)map);
         });
     }
     

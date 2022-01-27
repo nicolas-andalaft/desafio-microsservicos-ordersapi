@@ -1,6 +1,5 @@
 package com.nicolas.ordersapi.presentation.API;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import com.nicolas.ordersapi.data.datasources.IOrderDatasource;
@@ -23,9 +22,13 @@ import com.nicolas.ordersapi.domain.repositories.IUserRepository;
 import com.nicolas.ordersapi.domain.repositories.IUserStockBalanceRepository;
 import com.nicolas.ordersapi.domain.usecases.CreateOrderUsecase;
 import com.nicolas.ordersapi.domain.usecases.GetOrCreateUserUsecase;
+import com.nicolas.ordersapi.domain.usecases.GetUserOrdersUsecase;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -51,6 +54,7 @@ class OrdersAPI {
 	// Usecases
 	private GetOrCreateUserUsecase getOrCreUsecase;
 	private CreateOrderUsecase createOrderUsecase;
+	private GetUserOrdersUsecase getUserOrdersUsecase;
 
 	public OrdersAPI() {
 		// Datasource implementations
@@ -68,41 +72,41 @@ class OrdersAPI {
 		// Usecase instances
 		getOrCreUsecase = new GetOrCreateUserUsecase(userRepository);
 		createOrderUsecase = new CreateOrderUsecase(orderRepository, userStockBalanceRepository, userRepository, stockRepository);
+		getUserOrdersUsecase = new GetUserOrdersUsecase(orderRepository);
 	}
+
+	@GetMapping("/")
+	public void root() {}
+
+	@GetMapping("/error")
+	public void error() {}
 	
 	@PostMapping("/user")
-	public Map<String, Object> getOrCreateUser(@RequestBody Map<String, Map<String, Object>> req) {
-		var resp = new HashMap<String, Object>(){};
-
+	public ResponseEntity<?> getOrCreateUser(@RequestBody Map<String, Map<String, Object>> req) {
         var data = req.get("body");
 		var email = data.get("email");
 
-		if (email == null) {
-			resp.put("status", "ERROR");
-			resp.put("errorMessage", "No email found");
-			return resp;
-		}
+		if (email == null) 
+			return returnBadRequest(Either.left("No email object found"));
 
 		var user = new UserEntity();
 		user.username = email.toString();
 		var result = getOrCreUsecase.call(user);
 		
-		return resultChecker(result, "user");
+		if (result.isLeft()) 
+			return returnServerError(result);
+		else
+			return returnOk(result);
 	}
 
-	@PostMapping("/order/new")
+	@PostMapping("/orders/new")
 	@SuppressWarnings("unchecked")
-	public Map<String, Object> createOrder(@RequestBody Map<String, Map<String, Object>> req) {
-		var resp = new HashMap<String, Object>(){};
-		
+	public ResponseEntity<?> createOrder(@RequestBody Map<String, Map<String, Object>> req) {
         var data = req.get("body");
 		var orderMap = data.get("order");
 		
-		if (orderMap == null) {
-			resp.put("status", "ERROR");
-			resp.put("errorMessage", "No order found");
-			return resp;
-		}
+		if (orderMap == null)
+			returnBadRequest(Either.left("No order object found"));
 		
 		Either<Exception, Integer> result;
 		try {
@@ -112,28 +116,43 @@ class OrdersAPI {
 			result = Either.left(e);
 		}		
 		
-		return resultChecker(result, "affectedRows");
+		if (result.isLeft()) 
+			return returnServerError(result);
+		else
+			return returnOk(result);
 	}
 
-	@GetMapping("/")
-	public void root() {}
-
-	@GetMapping("/error")
-	public void error() {}
-
-	private Map<String, Object> resultChecker(Either<Exception, ?> result, String mapKey) {
-		var resp = new HashMap<String, Object>(){};
-
-		if (result.isLeft()) {
-			resp.put("status", "ERROR");
-			resp.put("errorMessage", result.getLeft());
-			System.err.println(result.getLeft());
-		}
-		else {
-			resp.put("status", "OK");
-			resp.put(mapKey, result.get());
+	@GetMapping("/orders/user/{id}")
+	public ResponseEntity<?> getUserOrders(@PathVariable String id) {
+		Long id_user;
+		try {
+			id_user = Long.parseLong(id);
+		} catch (Exception e) {
+			return returnBadRequest(Either.left("User id with wrong type"));
 		}
 
-		return resp;
+		var user = new UserEntity();
+		user.id = id_user;
+		var result = getUserOrdersUsecase.call(user);
+
+		if (result.isLeft())
+			return returnServerError(result);
+		else
+			return returnOk(result);
+	}
+
+	private ResponseEntity<?> returnServerError(Either<?,?> result) {
+		var response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result.getLeft());
+		return response;
+	}
+	
+	private ResponseEntity<?> returnBadRequest(Either<?,?> result) {
+		var response = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result.getLeft());
+		return response;
+	}
+	
+	private ResponseEntity<?> returnOk(Either<?,?> result) {
+		var response = ResponseEntity.status(HttpStatus.OK).body(result.get());
+		return response;
 	}
 }

@@ -41,7 +41,7 @@ public class CreateOrderUsecase implements IUsecase<OrderEntity, Integer> {
         order.status = 0;
 
         var stock = new StockEntity();
-        stock.id = order.id;
+        stock.id = order.id_stock;
 
         // Get correct stock name and symbol
         var stockResult = stockRepository.getStock(stock);

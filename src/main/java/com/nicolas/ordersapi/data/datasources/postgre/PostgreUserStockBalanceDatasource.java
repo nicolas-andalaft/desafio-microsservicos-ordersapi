@@ -3,7 +3,9 @@ package com.nicolas.ordersapi.data.datasources.postgre;
 import com.nicolas.ordersapi.data.datasources.IUserStockBalanceDatasource;
 import com.nicolas.ordersapi.data.models.UserStockBalanceModel;
 import com.nicolas.ordersapi.data.utils.DateTimeFormat;
+import com.nicolas.ordersapi.domain.entities.UserStockBalanceEntity;
 
+import io.vavr.collection.List;
 import io.vavr.control.Either;
 
 public class PostgreUserStockBalanceDatasource extends PostgreDatasource implements IUserStockBalanceDatasource {
@@ -17,20 +19,18 @@ public class PostgreUserStockBalanceDatasource extends PostgreDatasource impleme
 	}
 
     @Override
-    @SuppressWarnings("deprecation")
-    public Either<Exception, UserStockBalanceModel[]> getUserStockBalancesFromUser(
-            UserStockBalanceModel userStockBalance) {
+    public Either<Exception, List<UserStockBalanceEntity>> getUserStockBalancesFromUser(
+        UserStockBalanceEntity userStockBalance) {
         var sqlString = String.format("SELECT * FROM %s WHERE id_user = %s", tableName, userStockBalance.id_user);
 
         return super.executeQuery(sqlString).map((list) -> { 
-            var userStockBalanceModelList = list.map(UserStockBalanceModel::fromMap);
-            return (UserStockBalanceModel[])userStockBalanceModelList.toJavaArray();
+            return list.map((e) -> UserStockBalanceModel.fromMap(e));
         });
     }
 
     @Override
-    public Either<Exception, UserStockBalanceModel> getUserStockBalanceFromUserOfStock(
-            UserStockBalanceModel userStockBalance) {
+    public Either<Exception, UserStockBalanceEntity> getUserStockBalanceFromUserOfStock(
+        UserStockBalanceEntity userStockBalance) {
         var sqlString = String.format("SELECT * FROM %s WHERE id_user = %s AND id_stock = %s", tableName, userStockBalance.id_user, userStockBalance.id_stock);
 
         return super.executeQuery(sqlString).map((list) -> { 
@@ -40,7 +40,7 @@ public class PostgreUserStockBalanceDatasource extends PostgreDatasource impleme
     }
 
     @Override
-    public Either<Exception, Integer> createUserStockBalance(UserStockBalanceModel userStockBalance) {
+    public Either<Exception, Integer> createUserStockBalance(UserStockBalanceEntity userStockBalance) {
         var sqlString = String.format("INSERT INTO %s(id_stock, id_user, stock_symbol, stock_name, volume) VALUES(%s, %s, '%s', '%s', %s)", 
         tableName, userStockBalance.id_stock, userStockBalance.id_user, userStockBalance.stock_symbol, userStockBalance.stock_name, userStockBalance.volume);
 
@@ -48,7 +48,7 @@ public class PostgreUserStockBalanceDatasource extends PostgreDatasource impleme
     }
 
     @Override
-    public Either<Exception, Integer> adjustUserStockBalanceFromUserOfStock(UserStockBalanceModel userStockBalance) {
+    public Either<Exception, Integer> adjustUserStockBalanceFromUserOfStock(UserStockBalanceEntity userStockBalance) {
         var updated_on = DateTimeFormat.toString(userStockBalance.updated_on);
 
         var sqlString = String.format("UPDATE %s SET volume = volume + %s, updated_on = '%s' WHERE id_user = %s AND id_stock = %s", 
@@ -56,5 +56,4 @@ public class PostgreUserStockBalanceDatasource extends PostgreDatasource impleme
 
         return super.executeUpdate(sqlString);
     }
-    
 }

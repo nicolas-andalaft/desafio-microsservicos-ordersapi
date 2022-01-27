@@ -1,6 +1,7 @@
 package com.nicolas.ordersapi.data.repositories;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import com.nicolas.ordersapi.data.datasources.IUserStockBalanceDatasource;
 import com.nicolas.ordersapi.data.models.UserStockBalanceModel;
@@ -18,9 +19,9 @@ public class UserStockBalanceRepository implements IUserStockBalanceRepository {
     
 
     @Override
-    public Either<Exception, UserStockBalanceEntity[]> getUserStockBalanceFromUser(UserStockBalanceEntity userStockBalance) {
+    public Either<Exception, List<UserStockBalanceEntity>> getUserStockBalanceFromUser(UserStockBalanceEntity userStockBalance) {
         var userStockBalanceModel = new UserStockBalanceModel(userStockBalance);
-        return datasource.getUserStockBalancesFromUser(userStockBalanceModel).map((e) -> (UserStockBalanceEntity[])e);
+        return datasource.getUserStockBalancesFromUser(userStockBalanceModel).map((list) -> list.asJava());
     }
 
     @Override

@@ -2,6 +2,7 @@ package com.nicolas.ordersapi.data.datasources.postgre;
 
 import com.nicolas.ordersapi.data.datasources.IUserDatasource;
 import com.nicolas.ordersapi.data.models.UserModel;
+import com.nicolas.ordersapi.domain.entities.UserEntity;
 
 import io.vavr.control.Either;
 
@@ -15,7 +16,7 @@ public class PostgreUserDatasource extends PostgreDatasource implements IUserDat
 		super.tableName = "users";
 	}
 
-    public Either<Exception, UserModel> getUser(UserModel user) {
+    public Either<Exception, UserEntity> getUser(UserEntity user) {
 		var sqlString = String.format("SELECT * FROM %s WHERE username = '%s'", super.tableName, user.username);
 
 		return super.executeQuery(sqlString).map((list) -> { 
@@ -26,7 +27,7 @@ public class PostgreUserDatasource extends PostgreDatasource implements IUserDat
     }
 
 	@Override
-	public Either<Exception, Integer> createUser(UserModel user) {
+	public Either<Exception, Integer> createUser(UserEntity user) {
 		var sqlString = String.format("INSERT INTO %s(%s,%s,%s) VALUES('%s','%s',%s)", 
 		super.tableName, 
 		"username", "password", "dollar_balance", 
@@ -36,7 +37,7 @@ public class PostgreUserDatasource extends PostgreDatasource implements IUserDat
 	}
 
 	@Override
-	public Either<Exception, Integer> adjustDollarBalance(UserModel user) {
+	public Either<Exception, Integer> adjustDollarBalance(UserEntity user) {
 		var sqlString = String.format("UPDATE %s SET dollar_balance = dollar_balance + %s WHERE id = %s", 
 		super.tableName, user.dollar_balance, user.id);
 

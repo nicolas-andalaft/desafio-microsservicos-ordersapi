@@ -2,7 +2,10 @@ package com.nicolas.ordersapi.data.datasources.postgre;
 
 import com.nicolas.ordersapi.data.datasources.IOrderDatasource;
 import com.nicolas.ordersapi.data.models.OrderModel;
+import com.nicolas.ordersapi.domain.entities.OrderEntity;
+import com.nicolas.ordersapi.domain.entities.UserEntity;
 
+import io.vavr.collection.List;
 import io.vavr.control.Either;
 
 public class PostgreOrderDatasource extends PostgreDatasource implements IOrderDatasource {
@@ -16,12 +19,22 @@ public class PostgreOrderDatasource extends PostgreDatasource implements IOrderD
 	}
 
     @Override
-    public Either<Exception, Integer> createOrder(OrderModel order) {
+    public Either<Exception, Integer> createOrder(OrderEntity order) {
         String sqlString = String.format(
             "INSERT INTO %s(id_user, id_stock, stock_symbol, stock_name, volume, price, type, status)"+
             " VALUES(%s, %s, '%s', '%s', %s, %s, %s, %s)", 
             tableName, order.id_user, order.id_stock, order.stock_symbol, order.stock_name, order.volume, order.price, order.type, order.status);
 
         return super.executeUpdate(sqlString);
+    }
+
+    @Override
+    public Either<Exception, List<OrderEntity>> getUserOrders(UserEntity user) {
+        String sqlString = String.format(
+            "SELECT * FROM %s WHERE id_user = %s ORDER BY stock_name, stock_symbol", tableName, user.id);
+
+        return super.executeQuery(sqlString).map((list) -> {
+            return list.map(OrderModel::fromMap);
+        });
     }
 }

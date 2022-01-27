@@ -12,8 +12,7 @@ import io.vavr.control.Either;
 public class APIDatasource {
     protected String baseUrl;
 
-    @SuppressWarnings("unchecked")
-	protected Either<Exception, Map<String, Object>[]> get(String urlString) {
+	protected Either<Exception, ?> get(String urlString, boolean expectList) {
 		try {
             var url = new URL(urlString);
             var conn = (HttpURLConnection) url.openConnection();
@@ -33,8 +32,14 @@ public class APIDatasource {
             scanner.close();
 
             var mapper = new ObjectMapper();
-            var map = mapper.readValue(response, Map[].class);
-            return Either.right(map);
+            if (expectList) {
+                var map = mapper.readValue(response, Map[].class);
+                return Either.right(map);
+            }
+            else {
+                var map = mapper.readValue(response, Map.class);
+                return Either.right(map);
+            }
             
         } catch (Exception e) {
             return Either.left(e);
