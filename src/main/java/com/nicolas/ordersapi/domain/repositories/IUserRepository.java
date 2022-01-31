@@ -5,6 +5,6 @@ import io.vavr.control.Either;
 
 public interface IUserRepository {
     public Either<Exception, UserEntity> getUser(UserEntity user);
-    public Either<Exception, Integer> createUser(UserEntity user);
-    public Either<Exception, Integer> adjustDollarBalance(UserEntity user);
+    public Either<Exception, UserEntity> createUser(UserEntity user);
+    public Either<Exception, UserEntity> adjustDollarBalance(UserEntity user);
 }

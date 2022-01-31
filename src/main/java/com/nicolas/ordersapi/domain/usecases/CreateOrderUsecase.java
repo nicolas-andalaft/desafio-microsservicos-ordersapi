@@ -1,7 +1,5 @@
 package com.nicolas.ordersapi.domain.usecases;
 
-import java.math.BigDecimal;
-
 import com.nicolas.ordersapi.core.IUsecase;
 import com.nicolas.ordersapi.domain.entities.OrderEntity;
 import com.nicolas.ordersapi.domain.entities.StockEntity;
@@ -12,7 +10,7 @@ import com.nicolas.ordersapi.domain.repositories.IUserStockBalanceRepository;
 
 import io.vavr.control.Either;
 
-public class CreateOrderUsecase implements IUsecase<OrderEntity, Integer> {
+public class CreateOrderUsecase implements IUsecase<OrderEntity, OrderEntity> {
     private IOrderRepository orderRepository;
     private IUserStockBalanceRepository userStockBalanceRepository;
     private IStockRepository stockRepository;
@@ -28,18 +26,12 @@ public class CreateOrderUsecase implements IUsecase<OrderEntity, Integer> {
     }
 
     @Override
-    public Either<Exception, Integer> call(OrderEntity order) {
+    public Either<Exception, OrderEntity> call(OrderEntity order) {
         if (!(order.type == 0 || order.type == 1))
             return Either.left(new Exception("type property incorrect"));
 
-        // "open" status default value
-        order.status = 0;
-
-        var stock = new StockEntity();
-        stock.id = order.id_stock;
-
         // Get correct stock name and symbol
-        var stockResult = stockRepository.getStock(stock);
+        var stockResult = getStockData(order.id_stock);
         if (stockResult.isLeft())
             return Either.left(stockResult.getLeft());
 
@@ -47,19 +39,43 @@ public class CreateOrderUsecase implements IUsecase<OrderEntity, Integer> {
         order.stock_symbol = stockResult.get().stock_symbol;
 
         // Create order
-        var orderResult = orderRepository.createOrder(order);
+        var orderResult = createOrder(order);
         if (orderResult.isLeft())
             return Either.left(orderResult.getLeft());
+        
 
-        // User stock balance creation
+        // Create user stock balance
+        var userStockBalanceResult = createUserStockBalance(order);
+        if (userStockBalanceResult.isLeft())
+            return Either.left(userStockBalanceResult.getLeft());
+
+        // Return updated order if no exception caught
+        return Either.right(orderResult.get());
+    }  
+
+    private Either<Exception, StockEntity> getStockData(Long id_stock) {
+        var stock = new StockEntity();
+        stock.id = id_stock;
+
+        return stockRepository.getStock(stock);
+    }
+
+    private Either<Exception, OrderEntity> createOrder(OrderEntity order) {
+        // "open" status default value
+        order.status = 1;
+
+        return orderRepository.createOrder(order);
+    }
+
+    private Either<Exception, UserStockBalanceEntity> createUserStockBalance(OrderEntity order) {
         var userStockBalance = new UserStockBalanceEntity();
         userStockBalance.id_user = order.id_user;
         userStockBalance.id_stock = order.id_stock;
         userStockBalance.stock_symbol = order.stock_symbol;
         userStockBalance.stock_name = order.stock_name;
-        userStockBalance.volume = order.volume;
+        // Make sure user doesn't get volume on buy order
+        userStockBalance.volume = order.type == 1 ? order.volume : 0;
 
-        var userStockBalanceResult = userStockBalanceRepository.createOrUpdateUserStockBalanceFromUserOfStock(userStockBalance);
-        return Either.left(userStockBalanceResult.getLeft());
-    }  
+        return userStockBalanceRepository.createOrUpdateUserStockBalanceFromUserOfStock(userStockBalance);
+    }
 }

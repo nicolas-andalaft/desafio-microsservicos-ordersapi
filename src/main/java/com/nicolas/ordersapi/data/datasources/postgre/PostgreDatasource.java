@@ -54,28 +54,4 @@ public abstract class PostgreDatasource {
 
 		return result;
 	}
-
-	protected Either<Exception, Integer> executeUpdate(String sqlString) {
-		var tryConnect = connect();
-        if (tryConnect.isLeft()) return Either.left(tryConnect.getLeft());
-
-		var conn = tryConnect.get();
-        Either<Exception, Integer> result;
-        
-		try {
-			Statement statement = conn.createStatement();
-			var affected = statement.executeUpdate(sqlString);
-			
-			result = Either.right(affected);
-
-		} catch (SQLException e) {
-			result = Either.left(e);
-		}
-
-		try {
-			conn.close();
-		} catch(Exception e) {}
-
-		return result;
-	}
 }

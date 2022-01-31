@@ -15,11 +15,13 @@ import com.nicolas.ordersapi.data.repositories.OrderRepository;
 import com.nicolas.ordersapi.data.repositories.StockRepository;
 import com.nicolas.ordersapi.data.repositories.UserRepository;
 import com.nicolas.ordersapi.data.repositories.UserStockBalanceRepository;
+import com.nicolas.ordersapi.domain.entities.OrderEntity;
 import com.nicolas.ordersapi.domain.entities.UserEntity;
 import com.nicolas.ordersapi.domain.repositories.IOrderRepository;
 import com.nicolas.ordersapi.domain.repositories.IStockRepository;
 import com.nicolas.ordersapi.domain.repositories.IUserRepository;
 import com.nicolas.ordersapi.domain.repositories.IUserStockBalanceRepository;
+import com.nicolas.ordersapi.domain.usecases.CheckForOrderMatchUsecase;
 import com.nicolas.ordersapi.domain.usecases.CreateOrderUsecase;
 import com.nicolas.ordersapi.domain.usecases.GetOrCreateUserUsecase;
 import com.nicolas.ordersapi.domain.usecases.GetUserOrdersUsecase;
@@ -55,6 +57,7 @@ class OrdersAPI {
 	private GetOrCreateUserUsecase getOrCreUsecase;
 	private CreateOrderUsecase createOrderUsecase;
 	private GetUserOrdersUsecase getUserOrdersUsecase;
+	private CheckForOrderMatchUsecase checkForOrderMatchUsecase;
 
 	public OrdersAPI() {
 		// Datasource implementations
@@ -73,6 +76,7 @@ class OrdersAPI {
 		getOrCreUsecase = new GetOrCreateUserUsecase(userRepository);
 		createOrderUsecase = new CreateOrderUsecase(orderRepository, userStockBalanceRepository, stockRepository);
 		getUserOrdersUsecase = new GetUserOrdersUsecase(orderRepository);
+		checkForOrderMatchUsecase = new CheckForOrderMatchUsecase(orderRepository, userRepository, userStockBalanceRepository);
 	}
 
 	@GetMapping("/")
@@ -108,18 +112,25 @@ class OrdersAPI {
 		if (orderMap == null)
 			returnBadRequest(Either.left("No order object found"));
 		
-		Either<Exception, Integer> result;
+		Either<Exception, OrderEntity> orderResult;
+		OrderEntity order = null;
 		try {
-			var order = OrderModel.fromMap((Map<String, Object>)orderMap);
-			result = createOrderUsecase.call(order);
+			order = OrderModel.fromMap((Map<String, Object>)orderMap);
+			orderResult = createOrderUsecase.call(order);
 		} catch (Exception e) {
-			result = Either.left(e);
+			orderResult = Either.left(e);
 		}		
 		
-		if (result.isLeft()) 
+		if (orderResult.isLeft()) 
+			return returnServerError(orderResult);
+		
+		var result = checkForOrderMatchUsecase.call(orderResult.get());
+
+		if (result.isLeft())
 			return returnServerError(result);
-		else
+		else 
 			return returnOk(result);
+		
 	}
 
 	@GetMapping("/orders/user/{id}")

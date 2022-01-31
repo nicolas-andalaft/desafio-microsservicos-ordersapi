@@ -32,7 +32,7 @@ public class UserStockBalanceRepository implements IUserStockBalanceRepository {
 
 
     @Override
-    public Either<Exception, Integer> createOrUpdateUserStockBalanceFromUserOfStock(UserStockBalanceEntity userStockBalance) {
+    public Either<Exception, UserStockBalanceEntity> createOrUpdateUserStockBalanceFromUserOfStock(UserStockBalanceEntity userStockBalance) {
         var userStockBalanceModel = new UserStockBalanceModel(userStockBalance);
         // Check if balance exists
         var search = datasource.getUserStockBalanceFromUserOfStock(userStockBalanceModel);
@@ -48,5 +48,11 @@ public class UserStockBalanceRepository implements IUserStockBalanceRepository {
             userStockBalanceModel.updated_on = LocalDateTime.now();
             return datasource.adjustUserStockBalanceFromUserOfStock(userStockBalanceModel);
         }
+    }
+
+
+    @Override
+    public Either<Exception, UserStockBalanceEntity> adjustUserStockBalanceFromUserOfStock(UserStockBalanceEntity userStockBalance) {
+        return datasource.adjustUserStockBalanceFromUserOfStock(userStockBalance);
     }
 }

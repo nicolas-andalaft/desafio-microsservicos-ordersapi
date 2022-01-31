@@ -23,24 +23,29 @@ public class PostgreUserDatasource extends PostgreDatasource implements IUserDat
 			if (list.length() != 1) return null;
 			return UserModel.fromMap(list.get(0));
 		});
-        
     }
 
 	@Override
-	public Either<Exception, Integer> createUser(UserEntity user) {
-		var sqlString = String.format("INSERT INTO %s(%s,%s,%s) VALUES('%s','%s',%s)", 
+	public Either<Exception, UserEntity> createUser(UserEntity user) {
+		var sqlString = String.format("INSERT INTO %s(%s,%s,%s) VALUES('%s','%s',%s) RETURNING *", 
 		super.tableName, 
 		"username", "password", "dollar_balance", 
 		user.username, "", user.dollar_balance);
 
-		return super.executeUpdate(sqlString);
+		return super.executeQuery(sqlString).map((list) -> { 
+			if (list.length() != 1) return null;
+			return UserModel.fromMap(list.get(0));
+		});
 	}
 
 	@Override
-	public Either<Exception, Integer> adjustDollarBalance(UserEntity user) {
-		var sqlString = String.format("UPDATE %s SET dollar_balance = dollar_balance + %s WHERE id = %s", 
+	public Either<Exception, UserEntity> adjustDollarBalance(UserEntity user) {
+		var sqlString = String.format("UPDATE %s SET dollar_balance = dollar_balance + %s WHERE id = %s RETURNING *", 
 		super.tableName, user.dollar_balance, user.id);
 
-		return super.executeUpdate(sqlString);
+		return super.executeQuery(sqlString).map((list) -> { 
+			if (list.length() != 1) return null;
+			return UserModel.fromMap(list.get(0));
+		});
 	}
 }

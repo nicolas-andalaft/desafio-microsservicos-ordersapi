@@ -8,6 +8,6 @@ import io.vavr.control.Either;
 public interface IUserStockBalanceDatasource {
     public abstract Either<Exception, List<UserStockBalanceEntity>> getUserStockBalancesFromUser(UserStockBalanceEntity userStockBalance);
     public abstract Either<Exception, UserStockBalanceEntity> getUserStockBalanceFromUserOfStock(UserStockBalanceEntity userStockBalance);
-    public abstract Either<Exception, Integer> createUserStockBalance(UserStockBalanceEntity userStockBalance);
-    public abstract Either<Exception, Integer> adjustUserStockBalanceFromUserOfStock(UserStockBalanceEntity userStockBalance);
+    public abstract Either<Exception, UserStockBalanceEntity> createUserStockBalance(UserStockBalanceEntity userStockBalance);
+    public abstract Either<Exception, UserStockBalanceEntity> adjustUserStockBalanceFromUserOfStock(UserStockBalanceEntity userStockBalance);
 }

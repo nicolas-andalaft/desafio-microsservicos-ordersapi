@@ -1,5 +1,7 @@
 package com.nicolas.ordersapi.data.datasources.postgre;
 
+import java.time.LocalDateTime;
+
 import com.nicolas.ordersapi.data.datasources.IUserStockBalanceDatasource;
 import com.nicolas.ordersapi.data.models.UserStockBalanceModel;
 import com.nicolas.ordersapi.data.utils.DateTimeFormat;
@@ -40,20 +42,26 @@ public class PostgreUserStockBalanceDatasource extends PostgreDatasource impleme
     }
 
     @Override
-    public Either<Exception, Integer> createUserStockBalance(UserStockBalanceEntity userStockBalance) {
-        var sqlString = String.format("INSERT INTO %s(id_stock, id_user, stock_symbol, stock_name, volume) VALUES(%s, %s, '%s', '%s', %s)", 
+    public Either<Exception, UserStockBalanceEntity> createUserStockBalance(UserStockBalanceEntity userStockBalance) {
+        var sqlString = String.format("INSERT INTO %s(id_stock, id_user, stock_symbol, stock_name, volume) VALUES(%s, %s, '%s', '%s', %s) RETURNING *", 
         tableName, userStockBalance.id_stock, userStockBalance.id_user, userStockBalance.stock_symbol, userStockBalance.stock_name, userStockBalance.volume);
 
-        return super.executeUpdate(sqlString);
+        return super.executeQuery(sqlString).map((list) -> { 
+            if (list.length() == 0) return null;
+            return UserStockBalanceModel.fromMap(list.get(0));
+        });
     }
 
     @Override
-    public Either<Exception, Integer> adjustUserStockBalanceFromUserOfStock(UserStockBalanceEntity userStockBalance) {
-        var updated_on = DateTimeFormat.toString(userStockBalance.updated_on);
+    public Either<Exception, UserStockBalanceEntity> adjustUserStockBalanceFromUserOfStock(UserStockBalanceEntity userStockBalance) {
+        var updated_on = DateTimeFormat.toString(LocalDateTime.now());
 
-        var sqlString = String.format("UPDATE %s SET volume = volume + %s, updated_on = '%s' WHERE id_user = %s AND id_stock = %s", 
+        var sqlString = String.format("UPDATE %s SET volume = volume + %s, updated_on = '%s' WHERE id_user = %s AND id_stock = %s RETURNING *", 
         tableName, userStockBalance.volume, updated_on, userStockBalance.id_user, userStockBalance.id_stock);
 
-        return super.executeUpdate(sqlString);
+        return super.executeQuery(sqlString).map((list) -> { 
+            if (list.length() == 0) return null;
+            return UserStockBalanceModel.fromMap(list.get(0));
+        });
     }
 }

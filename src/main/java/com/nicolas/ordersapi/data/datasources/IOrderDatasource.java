@@ -7,6 +7,8 @@ import io.vavr.collection.List;
 import io.vavr.control.Either;
 
 public interface IOrderDatasource {
-    public Either<Exception, Integer> createOrder(OrderEntity order);
+    public Either<Exception, OrderEntity> createOrder(OrderEntity order);
     public Either<Exception, List<OrderEntity>> getUserOrders(UserEntity user);
+    public Either<Exception, List<OrderEntity>> getOrderMatches(OrderEntity order);
+    public Either<Exception, OrderEntity> updateOrder(OrderEntity order);
 }
