@@ -14,11 +14,7 @@ import io.vavr.control.Either;
 public class PostgreOrderDatasource extends PostgreDatasource implements IOrderDatasource {
 
     public PostgreOrderDatasource() {
-		super.databaseUrl = "localhost:5432";
-		super.databaseName = "orders_db";
-		super.username = "postgres";
-		super.password = "postgres";
-		super.tableName = "user_orders";
+		super("user_orders");
 	}
 
     @Override
@@ -28,7 +24,7 @@ public class PostgreOrderDatasource extends PostgreDatasource implements IOrderD
             " VALUES(%s, %s, '%s', '%s', %s, %s, %s, %s) RETURNING *", 
             tableName, order.id_user, order.id_stock, order.stock_symbol, order.stock_name, order.volume, order.price, order.type, order.status);
 
-        return super.executeQuery(sqlString).map((list) -> { 
+        return super.execute(sqlString).map((list) -> { 
             if (list.length() == 0) return null;
             return OrderModel.fromMap(list.get(0));
         });
@@ -39,7 +35,7 @@ public class PostgreOrderDatasource extends PostgreDatasource implements IOrderD
         String sqlString = String.format(
             "SELECT * FROM %s WHERE id_user = %s ORDER BY stock_name, stock_symbol", tableName, user.id);
 
-        return super.executeQuery(sqlString).map((list) -> {
+        return super.execute(sqlString).map((list) -> {
             return list.map(OrderModel::fromMap);
         });
     }
@@ -51,7 +47,7 @@ public class PostgreOrderDatasource extends PostgreDatasource implements IOrderD
             tableName, order.id_stock, order.type == 0 ? 1 : 0, order.type == 0 ? "<=" : ">=", order.price
         );
 
-        return super.executeQuery(sqlString).map((list) -> {
+        return super.execute(sqlString).map((list) -> {
             return list.map(OrderModel::fromMap);
         });
     }
@@ -65,7 +61,7 @@ public class PostgreOrderDatasource extends PostgreDatasource implements IOrderD
             tableName, order.volume, order.status, updated_on, order.id
         );
 
-        return super.executeQuery(sqlString).map((list) -> { 
+        return super.execute(sqlString).map((list) -> { 
             if (list.length() == 0) return null;
             return OrderModel.fromMap(list.get(0));
         });

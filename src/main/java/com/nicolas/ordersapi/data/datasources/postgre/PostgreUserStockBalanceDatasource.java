@@ -13,11 +13,7 @@ import io.vavr.control.Either;
 public class PostgreUserStockBalanceDatasource extends PostgreDatasource implements IUserStockBalanceDatasource {
 
     public PostgreUserStockBalanceDatasource() {
-		super.databaseUrl = "localhost:5432";
-		super.databaseName = "orders_db";
-		super.username = "postgres";
-		super.password = "postgres";
-		super.tableName = "user_stock_balances";
+		super("user_stock_balances");
 	}
 
     @Override
@@ -25,7 +21,7 @@ public class PostgreUserStockBalanceDatasource extends PostgreDatasource impleme
         UserStockBalanceEntity userStockBalance) {
         var sqlString = String.format("SELECT * FROM %s WHERE id_user = %s", tableName, userStockBalance.id_user);
 
-        return super.executeQuery(sqlString).map((list) -> { 
+        return super.execute(sqlString).map((list) -> { 
             return list.map((e) -> UserStockBalanceModel.fromMap(e));
         });
     }
@@ -35,7 +31,7 @@ public class PostgreUserStockBalanceDatasource extends PostgreDatasource impleme
         UserStockBalanceEntity userStockBalance) {
         var sqlString = String.format("SELECT * FROM %s WHERE id_user = %s AND id_stock = %s", tableName, userStockBalance.id_user, userStockBalance.id_stock);
 
-        return super.executeQuery(sqlString).map((list) -> { 
+        return super.execute(sqlString).map((list) -> { 
             if (list.length() == 0) return null;
             return UserStockBalanceModel.fromMap(list.get(0));
         });
@@ -46,7 +42,7 @@ public class PostgreUserStockBalanceDatasource extends PostgreDatasource impleme
         var sqlString = String.format("INSERT INTO %s(id_stock, id_user, stock_symbol, stock_name, volume) VALUES(%s, %s, '%s', '%s', %s) RETURNING *", 
         tableName, userStockBalance.id_stock, userStockBalance.id_user, userStockBalance.stock_symbol, userStockBalance.stock_name, userStockBalance.volume);
 
-        return super.executeQuery(sqlString).map((list) -> { 
+        return super.execute(sqlString).map((list) -> { 
             if (list.length() == 0) return null;
             return UserStockBalanceModel.fromMap(list.get(0));
         });
@@ -59,7 +55,7 @@ public class PostgreUserStockBalanceDatasource extends PostgreDatasource impleme
         var sqlString = String.format("UPDATE %s SET volume = volume + %s, updated_on = '%s' WHERE id_user = %s AND id_stock = %s RETURNING *", 
         tableName, userStockBalance.volume, updated_on, userStockBalance.id_user, userStockBalance.id_stock);
 
-        return super.executeQuery(sqlString).map((list) -> { 
+        return super.execute(sqlString).map((list) -> { 
             if (list.length() == 0) return null;
             return UserStockBalanceModel.fromMap(list.get(0));
         });

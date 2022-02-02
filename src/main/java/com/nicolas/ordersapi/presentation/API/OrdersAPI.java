@@ -80,10 +80,10 @@ class OrdersAPI {
 	}
 
 	@GetMapping("/")
-	public void root() {}
+	public String root() { return "OrdersAPI"; }
 
 	@GetMapping("/error")
-	public void error() {}
+	public String error() { return "Endpoint doesn't exist"; }
 	
 	@PostMapping("/user")
 	public ResponseEntity<?> getOrCreateUser(@RequestBody Map<String, Map<String, Object>> req) {

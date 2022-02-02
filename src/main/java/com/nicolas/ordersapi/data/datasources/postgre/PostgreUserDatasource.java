@@ -9,17 +9,13 @@ import io.vavr.control.Either;
 public class PostgreUserDatasource extends PostgreDatasource implements IUserDatasource {
 
 	public PostgreUserDatasource() {
-		super.databaseUrl = "localhost:5432";
-		super.databaseName = "orders_db";
-		super.username = "postgres";
-		super.password = "postgres";
-		super.tableName = "users";
+		super("users");
 	}
 
     public Either<Exception, UserEntity> getUser(UserEntity user) {
 		var sqlString = String.format("SELECT * FROM %s WHERE username = '%s'", super.tableName, user.username);
 
-		return super.executeQuery(sqlString).map((list) -> { 
+		return super.execute(sqlString).map((list) -> { 
 			if (list.length() != 1) return null;
 			return UserModel.fromMap(list.get(0));
 		});
@@ -32,7 +28,7 @@ public class PostgreUserDatasource extends PostgreDatasource implements IUserDat
 		"username", "password", "dollar_balance", 
 		user.username, "", user.dollar_balance);
 
-		return super.executeQuery(sqlString).map((list) -> { 
+		return super.execute(sqlString).map((list) -> { 
 			if (list.length() != 1) return null;
 			return UserModel.fromMap(list.get(0));
 		});
@@ -43,7 +39,7 @@ public class PostgreUserDatasource extends PostgreDatasource implements IUserDat
 		var sqlString = String.format("UPDATE %s SET dollar_balance = dollar_balance + %s WHERE id = %s RETURNING *", 
 		super.tableName, user.dollar_balance, user.id);
 
-		return super.executeQuery(sqlString).map((list) -> { 
+		return super.execute(sqlString).map((list) -> { 
 			if (list.length() != 1) return null;
 			return UserModel.fromMap(list.get(0));
 		});
