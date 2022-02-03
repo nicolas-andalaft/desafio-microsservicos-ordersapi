@@ -4,15 +4,18 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.ArrayList;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.vavr.collection.List;
 import io.vavr.control.Either;
 
 public class APIDatasource {
     protected String baseUrl;
 
-	protected Either<Exception, ?> get(String urlString, boolean expectList) {
+    @SuppressWarnings("unchecked")
+	protected Either<Exception, List<Map<String, Object>>> get(String urlString, boolean expectList) {
 		try {
             var url = new URL(urlString);
             var conn = (HttpURLConnection) url.openConnection();
@@ -32,14 +35,18 @@ public class APIDatasource {
             scanner.close();
 
             var mapper = new ObjectMapper();
+            java.util.List<Map<String, Object>> result = new ArrayList<Map<String, Object>>();
+
             if (expectList) {
-                var map = mapper.readValue(response, Map[].class);
-                return Either.right(map);
+                var list = mapper.readValue(response, java.util.List.class);
+                result = list;
             }
             else {
                 var map = mapper.readValue(response, Map.class);
-                return Either.right(map);
+                result.add(map);
             }
+
+            return Either.right(List.ofAll(result));
             
         } catch (Exception e) {
             return Either.left(e);
