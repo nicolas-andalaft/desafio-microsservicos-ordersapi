@@ -30,34 +30,27 @@ public class GetOrCreateUserUsecase implements IUsecase<UserEntity, UserEntity> 
     @Override
     public Either<Exception, UserEntity>  call(UserEntity user)  {
         // Search for user 
-        var result = userRepository.getUser(user);
-        if (result.isLeft()) return result;
+        var userSearch = userRepository.getUser(user);
+        if (userSearch.isLeft()) return userSearch;
         
         // Return found user
-        if (result.get() != null && result.get().id != null) {
-            return Either.right(result.get());
+        if (userSearch.get() != null && userSearch.get().id != null) {
+            return Either.right(userSearch.get());
         }
 
         // Create user if no match was found 
-        UserEntity newUser = new UserEntity();
-        newUser.username = user.username;
-        newUser.dollar_balance = new BigDecimal(10000);
+        user.dollar_balance = new BigDecimal(10000);
 
-        var userResult = userRepository.createUser(newUser);
+        var userResult = userRepository.createUser(user);
+        if (userResult.isLeft()) return userResult;
 
-        if (userResult.isLeft())
-            return Either.left(userResult.getLeft());
-        
-        // Get created user
-        userResult = userRepository.getUser(user);
-        if (userResult.isLeft())
-            return Either.left(userResult.getLeft());
-
+        // Give user random stocks
         var randomStocks = giveRandomStockBalances(userResult.get());
         if (randomStocks.isLeft())
             return Either.left(randomStocks.getLeft());
 
-        return Either.right(userResult.get());
+        // Return user entity
+        return userResult;
     }
 
     private Either<Exception, Object> giveRandomStockBalances(UserEntity user) {

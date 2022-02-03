@@ -16,7 +16,7 @@ public class PostgreOrderDatasource extends PostgreDatasource implements IOrderD
     public PostgreOrderDatasource() {
 		super("user_orders");
 	}
-
+    
     @Override
     public Either<Exception, OrderEntity> createOrder(OrderEntity order) {
         String sqlString = String.format(

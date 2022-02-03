@@ -2,29 +2,15 @@ package com.nicolas.ordersapi.presentation.API;
 
 import java.util.Map;
 
-import com.nicolas.ordersapi.data.datasources.IOrderDatasource;
-import com.nicolas.ordersapi.data.datasources.IStockDatasource;
-import com.nicolas.ordersapi.data.datasources.IUserDatasource;
-import com.nicolas.ordersapi.data.datasources.IUserStockBalanceDatasource;
+import com.nicolas.ordersapi.data.datasources.*;
 import com.nicolas.ordersapi.data.datasources.API.StockAPIDatasource;
-import com.nicolas.ordersapi.data.datasources.postgre.PostgreUserDatasource;
-import com.nicolas.ordersapi.data.datasources.postgre.PostgreUserStockBalanceDatasource;
-import com.nicolas.ordersapi.data.datasources.postgre.PostgreOrderDatasource;
+import com.nicolas.ordersapi.data.datasources.postgre.*;
 import com.nicolas.ordersapi.data.models.OrderModel;
-import com.nicolas.ordersapi.data.repositories.OrderRepository;
-import com.nicolas.ordersapi.data.repositories.StockRepository;
-import com.nicolas.ordersapi.data.repositories.UserRepository;
-import com.nicolas.ordersapi.data.repositories.UserStockBalanceRepository;
+import com.nicolas.ordersapi.data.repositories.*;
 import com.nicolas.ordersapi.domain.entities.OrderEntity;
 import com.nicolas.ordersapi.domain.entities.UserEntity;
-import com.nicolas.ordersapi.domain.repositories.IOrderRepository;
-import com.nicolas.ordersapi.domain.repositories.IStockRepository;
-import com.nicolas.ordersapi.domain.repositories.IUserRepository;
-import com.nicolas.ordersapi.domain.repositories.IUserStockBalanceRepository;
-import com.nicolas.ordersapi.domain.usecases.CheckForOrderMatchUsecase;
-import com.nicolas.ordersapi.domain.usecases.CreateOrderUsecase;
-import com.nicolas.ordersapi.domain.usecases.GetOrCreateUserUsecase;
-import com.nicolas.ordersapi.domain.usecases.GetUserOrdersUsecase;
+import com.nicolas.ordersapi.domain.repositories.*;
+import com.nicolas.ordersapi.domain.usecases.*;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -58,6 +44,7 @@ class OrdersAPI {
 	private CreateOrderUsecase createOrderUsecase;
 	private GetUserOrdersUsecase getUserOrdersUsecase;
 	private CheckForOrderMatchUsecase checkForOrderMatchUsecase;
+	private GetUserStockBalanceUsecase getUserStockBalanceUsecase;
 
 	public OrdersAPI() {
 		// Datasource implementations
@@ -77,6 +64,7 @@ class OrdersAPI {
 		createOrderUsecase = new CreateOrderUsecase(orderRepository, userStockBalanceRepository, stockRepository);
 		getUserOrdersUsecase = new GetUserOrdersUsecase(orderRepository);
 		checkForOrderMatchUsecase = new CheckForOrderMatchUsecase(orderRepository, userRepository, userStockBalanceRepository);
+		getUserStockBalanceUsecase = new GetUserStockBalanceUsecase(userStockBalanceRepository);
 	}
 
 	@GetMapping("/")
@@ -93,11 +81,39 @@ class OrdersAPI {
 		if (email == null) 
 			return returnBadRequest(Either.left("No email object found"));
 
+		// Create User entity
 		var user = new UserEntity();
 		user.username = email.toString();
+
+		// Open connection
+		PostgreDatasource.openConnection();
+		
 		var result = getOrCreUsecase.call(user);
+
+		// Close connection
+		PostgreDatasource.closeConnection();
 		
 		if (result.isLeft()) 
+			return returnServerError(result);
+		else
+			return returnOk(result);
+	}
+
+	@GetMapping("/user/{id}/balance")
+	public ResponseEntity<?> getUserStockBalance(@PathVariable String id) {
+		Long id_user = null;
+		try {
+			id_user = Long.parseLong(id);
+		} catch (Exception e) {
+			returnBadRequest(Either.left("Parameter in wrong format"));
+		}
+
+		var user = new UserEntity();
+		user.id = id_user;
+
+		var result = getUserStockBalanceUsecase.call(user);
+
+		if (result.isLeft())
 			return returnServerError(result);
 		else
 			return returnOk(result);
@@ -114,6 +130,10 @@ class OrdersAPI {
 		
 		Either<Exception, OrderEntity> orderResult;
 		OrderEntity order = null;
+
+		// Open connection
+		PostgreDatasource.openConnection();
+
 		try {
 			order = OrderModel.fromMap((Map<String, Object>)orderMap);
 			orderResult = createOrderUsecase.call(order);
@@ -125,6 +145,9 @@ class OrdersAPI {
 			return returnServerError(orderResult);
 		
 		var result = checkForOrderMatchUsecase.call(orderResult.get());
+
+		// Close connection
+		PostgreDatasource.closeConnection();
 
 		if (result.isLeft())
 			return returnServerError(result);

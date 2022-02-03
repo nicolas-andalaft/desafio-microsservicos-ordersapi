@@ -14,15 +14,44 @@ import io.vavr.collection.List;
 import io.vavr.control.Either;
 
 public abstract class PostgreDatasource {
-    private DataSource _datasource;
+    private static DataSource _datasource;
+	private static Connection _conn;
 	protected String tableName;
 
 	protected PostgreDatasource(String tableName) {
 		this.tableName = tableName;
 	}
+
+	public static Either<Exception, Boolean> openConnection() {
+		// Return false on already opened connection
+		if (_conn != null) return Either.right(false);
+
+		var result = getConnection();
+		return result.map((e) -> true);
+	}
+
+	public static void closeConnection() {
+		try {
+			_conn.close();
+
+		} catch (Exception e) {}
+
+		_conn = null;
+	}
+
+	private static Either<Exception, Connection> getConnection() {
+		try {
+			var datasource = getDataSource();
+			_conn = datasource.getConnection();
+			return Either.right(_conn);
+
+		} catch (Exception e) {
+			return Either.left(e);
+		}
+	}
 	
     @Bean
-	public DataSource dataSource() {
+	private static DataSource getDataSource() {
 		if (_datasource != null)
 			return _datasource;
 
@@ -38,12 +67,18 @@ public abstract class PostgreDatasource {
 
 	protected Either<Exception, List<Map<String, Object>>> execute(String sqlString) {
         Either<Exception, List<Map<String, Object>>> result;
-		Connection conn = null;
+		boolean manualConn = _conn == null;
+
+		if (manualConn) {
+			var tryConnect = getConnection();
+			if (tryConnect.isLeft()) 
+				return Either.left(tryConnect.getLeft());
+
+				_conn = tryConnect.get();
+		}
         
 		try {
-			var datasource = dataSource();
-			conn = datasource.getConnection();
-			var statement = conn.createStatement();
+			var statement = _conn.createStatement();
 			var rs = statement.executeQuery(sqlString);
 			var response = ResultConverter.toMapList(rs);
 			result = Either.right(response);
@@ -52,10 +87,8 @@ public abstract class PostgreDatasource {
 			result = Either.left(e);
 		}
 
-		try {
-			conn.close();
-		} 
-		catch (Exception e) {}
+		if (manualConn)
+			PostgreDatasource.closeConnection();
 
 		return result;
 	}
