@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import com.nicolas.ordersapi.data.datasources.IUserStockBalanceDatasource;
 import com.nicolas.ordersapi.data.models.UserStockBalanceModel;
 import com.nicolas.ordersapi.data.utils.DateTimeFormat;
+import com.nicolas.ordersapi.domain.entities.UserEntity;
 import com.nicolas.ordersapi.domain.entities.UserStockBalanceEntity;
 
 import io.vavr.collection.List;
@@ -17,9 +18,8 @@ public class PostgreUserStockBalanceDatasource extends PostgreDatasource impleme
 	}
 
     @Override
-    public Either<Exception, List<UserStockBalanceEntity>> getUserStockBalancesFromUser(
-        UserStockBalanceEntity userStockBalance) {
-        var sqlString = String.format("SELECT * FROM %s WHERE id_user = %s", tableName, userStockBalance.id_user);
+    public Either<Exception, List<UserStockBalanceEntity>> getUserStockBalancesFromUser(UserEntity user) {
+        var sqlString = String.format("SELECT * FROM %s WHERE id_user = %s", tableName, user.id);
 
         return super.execute(sqlString).map((list) -> { 
             return list.map((e) -> UserStockBalanceModel.fromMap(e));

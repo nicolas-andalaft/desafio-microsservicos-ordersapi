@@ -1,10 +1,11 @@
 package com.nicolas.ordersapi.data.repositories;
 
+import java.util.List;
+
 import com.nicolas.ordersapi.data.datasources.IStockDatasource;
 import com.nicolas.ordersapi.domain.entities.StockEntity;
 import com.nicolas.ordersapi.domain.repositories.IStockRepository;
 
-import io.vavr.collection.List;
 import io.vavr.control.Either;
 
 public class StockRepository implements IStockRepository {
@@ -21,7 +22,7 @@ public class StockRepository implements IStockRepository {
 
     @Override
     public Either<Exception, List<StockEntity>> getRandomStocks(int qty) {
-        return datasource.getRandomStocks(qty);
+        return datasource.getRandomStocks(qty).map((list) -> list.asJava());
     }
     
 }

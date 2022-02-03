@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.nicolas.ordersapi.data.datasources.IUserStockBalanceDatasource;
 import com.nicolas.ordersapi.data.models.UserStockBalanceModel;
+import com.nicolas.ordersapi.domain.entities.UserEntity;
 import com.nicolas.ordersapi.domain.entities.UserStockBalanceEntity;
 import com.nicolas.ordersapi.domain.repositories.IUserStockBalanceRepository;
 
@@ -19,9 +20,8 @@ public class UserStockBalanceRepository implements IUserStockBalanceRepository {
     
 
     @Override
-    public Either<Exception, List<UserStockBalanceEntity>> getUserStockBalanceFromUser(UserStockBalanceEntity userStockBalance) {
-        var userStockBalanceModel = new UserStockBalanceModel(userStockBalance);
-        return datasource.getUserStockBalancesFromUser(userStockBalanceModel).map((list) -> list.asJava());
+    public Either<Exception, List<UserStockBalanceEntity>> getUserStockBalanceFromUser(UserEntity user) {
+        return datasource.getUserStockBalancesFromUser(user).map((list) -> list.asJava());
     }
 
     @Override
