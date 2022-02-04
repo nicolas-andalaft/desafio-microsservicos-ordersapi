@@ -67,18 +67,20 @@ class OrdersAPI {
 		getUserStockBalanceUsecase = new GetUserStockBalanceUsecase(userStockBalanceRepository);
 	}
 
+	private final String getOrCreateUser = "/user/{email}";
+	private final String getUserStockBalance = "/user/{id}/balance";
+	private final String getUserOrders = "/user/{id}/orders";
+	private final String createOrder = "/orders/new";
+
 	@GetMapping("/")
 	public String root() { return "OrdersAPI"; }
 
 	@GetMapping("/error")
 	public String error() { return "Endpoint doesn't exist"; }
 	
-	@PostMapping("/user")
-	public ResponseEntity<?> getOrCreateUser(@RequestBody Map<String, Map<String, Object>> req) {
-        var data = req.get("body");
-		var email = data.get("email");
-
-		if (email == null) 
+	@GetMapping(getOrCreateUser)
+	public ResponseEntity<?> getOrCreateUser(@PathVariable String email) {
+		if (email.isBlank()) 
 			return returnBadRequest(Either.left("No email object found"));
 
 		// Create User entity
@@ -89,9 +91,6 @@ class OrdersAPI {
 		PostgreDatasource.openConnection();
 		
 		var result = getOrCreUsecase.call(user);
-
-		// Close connection
-		PostgreDatasource.closeConnection();
 		
 		if (result.isLeft()) 
 			return returnServerError(result);
@@ -99,7 +98,7 @@ class OrdersAPI {
 			return returnOk(result);
 	}
 
-	@GetMapping("/user/{id}/balance")
+	@GetMapping(getUserStockBalance)
 	public ResponseEntity<?> getUserStockBalance(@PathVariable String id) {
 		Long id_user = null;
 		try {
@@ -119,44 +118,7 @@ class OrdersAPI {
 			return returnOk(result);
 	}
 
-	@PostMapping("/orders/new")
-	@SuppressWarnings("unchecked")
-	public ResponseEntity<?> createOrder(@RequestBody Map<String, Map<String, Object>> req) {
-        var data = req.get("body");
-		var orderMap = data.get("order");
-		
-		if (orderMap == null)
-			returnBadRequest(Either.left("No order object found"));
-		
-		Either<Exception, OrderEntity> orderResult;
-		OrderEntity order = null;
-
-		// Open connection
-		PostgreDatasource.openConnection();
-
-		try {
-			order = OrderModel.fromMap((Map<String, Object>)orderMap);
-			orderResult = createOrderUsecase.call(order);
-		} catch (Exception e) {
-			orderResult = Either.left(e);
-		}		
-		
-		if (orderResult.isLeft()) 
-			return returnServerError(orderResult);
-		
-		var result = checkForOrderMatchUsecase.call(orderResult.get());
-
-		// Close connection
-		PostgreDatasource.closeConnection();
-
-		if (result.isLeft())
-			return returnServerError(result);
-		else 
-			return returnOk(result);
-		
-	}
-
-	@GetMapping("/orders/user/{id}")
+	@GetMapping(getUserOrders)
 	public ResponseEntity<?> getUserOrders(@PathVariable String id) {
 		Long id_user;
 		try {
@@ -175,17 +137,53 @@ class OrdersAPI {
 			return returnOk(result);
 	}
 
+	@PostMapping(createOrder)
+	@SuppressWarnings("unchecked")
+	public ResponseEntity<?> createOrder(@RequestBody Map<String, Map<String, Object>> req) {
+        var data = req.get("body");
+		var orderMap = data.get("order");
+		
+		if (orderMap == null)
+			returnBadRequest(Either.left("No order object found"));
+		
+		Either<Exception, OrderEntity> orderResult;
+		OrderEntity order = null;
+
+		// Open connection
+		PostgreDatasource.openConnection();
+
+		order = OrderModel.fromMap((Map<String, Object>)orderMap);
+		orderResult = createOrderUsecase.call(order);
+		
+		if (orderResult.isLeft()) 
+			return returnServerError(orderResult);
+		
+		var result = checkForOrderMatchUsecase.call(orderResult.get());
+
+		if (result.isLeft())
+			return returnServerError(result);
+		else 
+			return returnOk(result);
+		
+	}
+
 	private ResponseEntity<?> returnServerError(Either<?,?> result) {
+		PostgreDatasource.closeConnection();
+
 		var response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result.getLeft());
 		return response;
 	}
 	
 	private ResponseEntity<?> returnBadRequest(Either<?,?> result) {
+		PostgreDatasource.closeConnection();
+
 		var response = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result.getLeft());
 		return response;
 	}
 	
 	private ResponseEntity<?> returnOk(Either<?,?> result) {
+		PostgreDatasource.closeConnection();
+
 		var response = ResponseEntity.status(HttpStatus.OK).body(result.get());
 		return response;
 	}
