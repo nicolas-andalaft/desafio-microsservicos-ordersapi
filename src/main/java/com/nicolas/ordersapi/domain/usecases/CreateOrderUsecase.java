@@ -30,6 +30,13 @@ public class CreateOrderUsecase implements IUsecase<OrderEntity, OrderEntity> {
         if (!(order.type == 0 || order.type == 1))
             return Either.left(new Exception("type property incorrect"));
 
+        // Check if user has said stock to sell
+        if (order.type == 1) {
+            var result = userHasStock(order);
+            if (result.isLeft()) 
+                return Either.left(result.getLeft());
+        }
+
         // Get correct stock name and symbol
         var stockResult = getStockData(order.id_stock);
         if (stockResult.isLeft())
@@ -38,20 +45,24 @@ public class CreateOrderUsecase implements IUsecase<OrderEntity, OrderEntity> {
         order.stock_name = stockResult.get().stock_name;
         order.stock_symbol = stockResult.get().stock_symbol;
 
-        // Create order
-        var orderResult = createOrder(order);
-        if (orderResult.isLeft())
-            return Either.left(orderResult.getLeft());
-        
-
-        // Create user stock balance
-        var userStockBalanceResult = createUserStockBalance(order);
-        if (userStockBalanceResult.isLeft())
-            return Either.left(userStockBalanceResult.getLeft());
-
-        // Return updated order if no exception caught
-        return Either.right(orderResult.get());
+        // Return created order
+        return createOrder(order);
     }  
+
+    private Either<Exception, Object> userHasStock(OrderEntity order) {
+        var userStockBalance = new UserStockBalanceEntity();
+        userStockBalance.id_user = order.id_user;
+        userStockBalance.id_stock = order.id_stock;
+
+        var result = userStockBalanceRepository.getUserStockBalance(userStockBalance);
+        if (result.isLeft())
+            return Either.left(result.getLeft());
+            
+        if (result.get() == null)
+            return Either.left(new Exception("user does not own stock"));
+
+        return Either.right(null);
+    }
 
     private Either<Exception, StockEntity> getStockData(Long id_stock) {
         var stock = new StockEntity();
@@ -65,17 +76,5 @@ public class CreateOrderUsecase implements IUsecase<OrderEntity, OrderEntity> {
         order.status = 1;
 
         return orderRepository.createOrder(order);
-    }
-
-    private Either<Exception, UserStockBalanceEntity> createUserStockBalance(OrderEntity order) {
-        var userStockBalance = new UserStockBalanceEntity();
-        userStockBalance.id_user = order.id_user;
-        userStockBalance.id_stock = order.id_stock;
-        userStockBalance.stock_symbol = order.stock_symbol;
-        userStockBalance.stock_name = order.stock_name;
-        // Make sure user doesn't get volume on buy order
-        userStockBalance.volume = order.type == 1 ? order.volume : 0;
-
-        return userStockBalanceRepository.createOrUpdateUserStockBalanceFromUserOfStock(userStockBalance);
     }
 }

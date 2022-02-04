@@ -8,8 +8,7 @@ import com.nicolas.ordersapi.domain.entities.UserStockBalanceEntity;
 import io.vavr.control.Either;
 
 public interface IUserStockBalanceRepository {
-    public Either<Exception, List<UserStockBalanceEntity>> getUserStockBalanceFromUser(UserEntity user);
-    public Either<Exception, UserStockBalanceEntity> getUserStockBalanceFromUserOfStock(UserStockBalanceEntity userStockBalance);  
-    public Either<Exception, UserStockBalanceEntity> createOrUpdateUserStockBalanceFromUserOfStock(UserStockBalanceEntity userStockBalance);   
-    public Either<Exception, UserStockBalanceEntity> adjustUserStockBalanceFromUserOfStock(UserStockBalanceEntity userStockBalance);   
+    public Either<Exception, List<UserStockBalanceEntity>> getUserBalance(UserEntity user);
+    public Either<Exception, UserStockBalanceEntity> getUserStockBalance(UserStockBalanceEntity userStockBalance);  
+    public Either<Exception, UserStockBalanceEntity> createOrUpdateBalance(UserStockBalanceEntity userStockBalance);   
 }

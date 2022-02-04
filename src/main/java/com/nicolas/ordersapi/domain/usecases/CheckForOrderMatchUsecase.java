@@ -88,13 +88,15 @@ public class CheckForOrderMatchUsecase implements IUsecase<OrderEntity, Object>{
         for (OrderEntity order : orders) {
             userStockBalance.id_user = order.id_user;
             userStockBalance.id_stock = order.id_stock;
+            userStockBalance.stock_name = order.stock_name;
+            userStockBalance.stock_symbol = order.stock_symbol;
             userStockBalance.volume = transaction_volume;
 
             // Remove volume if order is of type sell
             if (order.type == 1)
                 userStockBalance.volume *= -1;
             
-            balanceUpdate = userStockBalanceRepository.adjustUserStockBalanceFromUserOfStock(userStockBalance);
+            balanceUpdate = userStockBalanceRepository.createOrUpdateBalance(userStockBalance);
         }
 
         return balanceUpdate.map((e) -> (Object)e);

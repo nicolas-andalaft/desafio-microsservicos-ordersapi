@@ -77,7 +77,7 @@ public class GetOrCreateUserUsecase implements IUsecase<UserEntity, UserEntity> 
             userStockBalance.stock_name = stock.stock_name;
             userStockBalance.volume = stocksVolume;
 
-            balanceResult = userStockBalanceRepository.createOrUpdateUserStockBalanceFromUserOfStock(userStockBalance);
+            balanceResult = userStockBalanceRepository.createOrUpdateBalance(userStockBalance);
             // Get exception if it happens
             if (balanceResult.isLeft())
                 exception = balanceResult.getLeft();
