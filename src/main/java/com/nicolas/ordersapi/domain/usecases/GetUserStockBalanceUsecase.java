@@ -18,6 +18,6 @@ public class GetUserStockBalanceUsecase implements IUsecase<UserEntity, List<Use
 
     @Override
     public Either<Exception, List<UserStockBalanceEntity>> call(UserEntity user) {
-        return repository.getUserBalance(user);
+        return repository.getUserBalance(user).map((list) -> list == null ? null : list.asJava());
     }
 }

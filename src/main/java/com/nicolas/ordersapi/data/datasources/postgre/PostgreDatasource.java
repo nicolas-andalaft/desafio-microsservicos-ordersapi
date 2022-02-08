@@ -38,17 +38,6 @@ public abstract class PostgreDatasource {
 
 		_conn = null;
 	}
-
-	private static Either<Exception, Connection> getConnection() {
-		try {
-			var datasource = getDataSource();
-			_conn = datasource.getConnection();
-			return Either.right(_conn);
-
-		} catch (Exception e) {
-			return Either.left(e);
-		}
-	}
 	
     @Bean
 	private static DataSource getDataSource() {
@@ -65,17 +54,23 @@ public abstract class PostgreDatasource {
 		return _datasource;
 	}
 
+	protected static Either<Exception, Connection> getConnection() {
+		try {
+			var datasource = getDataSource();
+			_conn = datasource.getConnection();
+			return Either.right(_conn);
+
+		} catch (Exception e) {
+			return Either.left(e);
+		}
+	}
+
 	protected Either<Exception, List<Map<String, Object>>> execute(String sqlString) {
         Either<Exception, List<Map<String, Object>>> result;
-		boolean manualConn = _conn == null;
 
-		if (manualConn) {
-			var tryConnect = getConnection();
-			if (tryConnect.isLeft()) 
-				return Either.left(tryConnect.getLeft());
-
-				_conn = tryConnect.get();
-		}
+		var conn = getConnection();
+		if (conn.isLeft())
+			return Either.left(conn.getLeft());
         
 		try {
 			var statement = _conn.createStatement();
@@ -86,9 +81,6 @@ public abstract class PostgreDatasource {
 		} catch (Exception e) {
 			result = Either.left(e);
 		}
-
-		if (manualConn)
-			PostgreDatasource.closeConnection();
 
 		return result;
 	}

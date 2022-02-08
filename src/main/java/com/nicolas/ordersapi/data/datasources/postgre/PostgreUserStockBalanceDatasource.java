@@ -1,7 +1,12 @@
 package com.nicolas.ordersapi.data.datasources.postgre;
 
+import java.sql.PreparedStatement;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+
 import com.nicolas.ordersapi.data.datasources.IUserStockBalanceDatasource;
 import com.nicolas.ordersapi.data.models.UserStockBalanceModel;
+import com.nicolas.ordersapi.data.utils.DateTimeFormat;
 import com.nicolas.ordersapi.domain.entities.UserEntity;
 import com.nicolas.ordersapi.domain.entities.UserStockBalanceEntity;
 
@@ -19,6 +24,7 @@ public class PostgreUserStockBalanceDatasource extends PostgreDatasource impleme
         var sqlString = String.format("SELECT * FROM %s WHERE id_user = %s", tableName, user.id);
 
         return super.execute(sqlString).map((list) -> { 
+            if (list.length() == 0) return null;
             return list.map((e) -> UserStockBalanceModel.fromMap(e));
         });
     }
@@ -35,15 +41,18 @@ public class PostgreUserStockBalanceDatasource extends PostgreDatasource impleme
     }
 
     @Override
-    public Either<Exception, UserStockBalanceEntity> createOrUpdateBalance(UserStockBalanceEntity userStockBalance) {
+    public Either<Exception, Object> createOrUpdateBalance(UserStockBalanceEntity balance) {
+        var updated_on = DateTimeFormat.toString(LocalDateTime.now());
+
         var sqlString = String.format(
             "INSERT INTO %s AS t (id_stock, id_user, stock_symbol, stock_name, volume) VALUES(%s, %s, '%s', '%s', %s) " +
-            "ON CONFLICT (id_user, id_stock) DO UPDATE SET volume = t.volume + %s RETURNING *", 
-            tableName, userStockBalance.id_stock, userStockBalance.id_user, userStockBalance.stock_symbol, userStockBalance.stock_name, userStockBalance.volume, userStockBalance.volume
+            "ON CONFLICT (id_user, id_stock) DO UPDATE SET volume = t.volume + %s, updated_on = '%s' RETURNING *", 
+            tableName,  balance.id_stock, balance.id_user, balance.stock_symbol, balance.stock_name, balance.volume,
+            balance.volume, updated_on
         );
 
         return super.execute(sqlString).map((list) -> { 
-            if (list.length() == 0) return null;
+            if (list.length() == 0 || list.get(0) == null) return null;
             return UserStockBalanceModel.fromMap(list.get(0));
         });
     }

@@ -1,10 +1,11 @@
 package com.nicolas.ordersapi.data.datasources.postgre;
 
+import java.sql.PreparedStatement;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
 import com.nicolas.ordersapi.data.datasources.IOrderDatasource;
 import com.nicolas.ordersapi.data.models.OrderModel;
-import com.nicolas.ordersapi.data.utils.DateTimeFormat;
 import com.nicolas.ordersapi.domain.entities.OrderEntity;
 import com.nicolas.ordersapi.domain.entities.UserEntity;
 
@@ -53,17 +54,39 @@ public class PostgreOrderDatasource extends PostgreDatasource implements IOrderD
     }
 
     @Override
-    public Either<Exception, OrderEntity> updateOrder(OrderEntity order) {
-        String updated_on = DateTimeFormat.toString(LocalDateTime.now());
+    public Either<Exception, Object> updateOrders(List<OrderEntity> orders) {
+        var updated_on = Timestamp.valueOf(LocalDateTime.now());
 
         String sqlString = String.format(
-            "UPDATE %s SET  volume = %s, status = %s, updated_on = '%s' WHERE id = %s RETURNING *", 
-            tableName, order.volume, order.status, updated_on, order.id
+            "UPDATE %s SET  volume = ?, status = ?, updated_on = ? WHERE id = ?", 
+            tableName
         );
 
-        return super.execute(sqlString).map((list) -> { 
-            if (list.length() == 0) return null;
-            return OrderModel.fromMap(list.get(0));
-        });
+        var conn = super.getConnection();
+        if (conn.isLeft())
+            return Either.left(conn.getLeft());
+
+        PreparedStatement statement;
+        try {
+            // Set sql query
+            statement = conn.get().prepareStatement(sqlString);
+            // Set values
+
+            for (OrderEntity order : orders) {
+                statement.setLong(1, order.volume);
+                statement.setInt(2, order.status);
+                statement.setTimestamp(3, updated_on);
+                statement.setLong(4, order.id);
+
+                statement.addBatch();
+            }
+
+            statement.executeBatch();
+            statement.close();
+        } catch (Exception e) {
+            return Either.left(e);
+        }
+
+        return Either.right(null);
     }
 }

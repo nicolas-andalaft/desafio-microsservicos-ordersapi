@@ -9,5 +9,5 @@ import io.vavr.control.Either;
 public interface IUserStockBalanceDatasource {
     public abstract Either<Exception, List<UserStockBalanceEntity>> getUserBalance(UserEntity user);
     public abstract Either<Exception, UserStockBalanceEntity> getUserStockBalance(UserStockBalanceEntity userStockBalance);
-    public abstract Either<Exception, UserStockBalanceEntity> createOrUpdateBalance(UserStockBalanceEntity userStockBalance);
+    public abstract Either<Exception, Object> createOrUpdateBalance(UserStockBalanceEntity userStockBalance);
 }

@@ -10,6 +10,7 @@ import com.nicolas.ordersapi.domain.repositories.IStockRepository;
 import com.nicolas.ordersapi.domain.repositories.IUserRepository;
 import com.nicolas.ordersapi.domain.repositories.IUserStockBalanceRepository;
 
+import io.vavr.collection.List;
 import io.vavr.control.Either;
 
 public class GetOrCreateUserUsecase implements IUsecase<UserEntity, UserEntity> {
@@ -77,7 +78,7 @@ public class GetOrCreateUserUsecase implements IUsecase<UserEntity, UserEntity> 
             userStockBalance.stock_name = stock.stock_name;
             userStockBalance.volume = stocksVolume;
 
-            balanceResult = userStockBalanceRepository.createOrUpdateBalance(userStockBalance);
+            balanceResult = userStockBalanceRepository.createOrUpdateBalances(List.of(userStockBalance));
             // Get exception if it happens
             if (balanceResult.isLeft())
                 exception = balanceResult.getLeft();
