@@ -1,5 +1,7 @@
 package com.nicolas.ordersapi.data.models;
 
+import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.util.Map;
 
 import com.nicolas.ordersapi.data.utils.MapGetter;
@@ -21,11 +23,11 @@ public class UserModel extends UserEntity {
 
     public static UserModel fromMap(Map<String, Object> map) {
         UserModel user = new UserModel();
-        user.id = MapGetter.getLong(map, "id");
-        user.username = MapGetter.getString(map, "username");
-        user.dollar_balance = MapGetter.getBigDecimal(map, "dollar_balance");
-        user.created_on = MapGetter.getLocalDateTime(map, "created_on");
-        user.updated_on = MapGetter.getLocalDateTime(map, "updated_on");
+        user.id = MapGetter.parse(map, "id", Long.class);
+        user.username = MapGetter.parse(map, "username", String.class);
+        user.dollar_balance = MapGetter.parse(map, "dollar_balance", BigDecimal.class);
+        user.created_on = MapGetter.parse(map, "created_on", Timestamp.class);
+        user.updated_on = MapGetter.parse(map, "updated_on", Timestamp.class);
         
         return user;
     }   

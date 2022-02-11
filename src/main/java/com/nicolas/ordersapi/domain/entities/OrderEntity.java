@@ -1,7 +1,7 @@
 package com.nicolas.ordersapi.domain.entities;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.sql.Timestamp;
 
 public class OrderEntity {
     public Long id;
@@ -13,8 +13,8 @@ public class OrderEntity {
     public BigDecimal price;
     public Integer type;
     public Integer status;
-    public LocalDateTime created_on;
-    public LocalDateTime updated_on;
+    public Timestamp created_on;
+    public Timestamp updated_on;
 
     public OrderEntity() {}
 }

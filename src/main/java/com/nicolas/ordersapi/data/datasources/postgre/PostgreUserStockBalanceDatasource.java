@@ -1,12 +1,10 @@
 package com.nicolas.ordersapi.data.datasources.postgre;
 
-import java.sql.PreparedStatement;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
 import com.nicolas.ordersapi.data.datasources.IUserStockBalanceDatasource;
 import com.nicolas.ordersapi.data.models.UserStockBalanceModel;
-import com.nicolas.ordersapi.data.utils.DateTimeFormat;
 import com.nicolas.ordersapi.domain.entities.UserEntity;
 import com.nicolas.ordersapi.domain.entities.UserStockBalanceEntity;
 
@@ -42,13 +40,13 @@ public class PostgreUserStockBalanceDatasource extends PostgreDatasource impleme
 
     @Override
     public Either<Exception, Object> createOrUpdateBalance(UserStockBalanceEntity balance) {
-        var updated_on = DateTimeFormat.toString(LocalDateTime.now());
+        var updated_on = Timestamp.valueOf(LocalDateTime.now());
 
         var sqlString = String.format(
             "INSERT INTO %s AS t (id_stock, id_user, stock_symbol, stock_name, volume) VALUES(%s, %s, '%s', '%s', %s) " +
             "ON CONFLICT (id_user, id_stock) DO UPDATE SET volume = t.volume + %s, updated_on = '%s' RETURNING *", 
             tableName,  balance.id_stock, balance.id_user, balance.stock_symbol, balance.stock_name, balance.volume,
-            balance.volume, updated_on
+            balance.volume, updated_on.toString()
         );
 
         return super.execute(sqlString).map((list) -> { 

@@ -1,6 +1,6 @@
 package com.nicolas.ordersapi.domain.entities;
 
-import java.time.LocalDateTime;
+import java.sql.Timestamp;
 
 public class StockEntity {
     public Long id;
@@ -10,8 +10,8 @@ public class StockEntity {
     public Float ask_max;
     public Float bid_min;
     public Float bid_max;
-    public LocalDateTime created_on;
-    public LocalDateTime updated_on;
+    public Timestamp created_on;
+    public Timestamp updated_on;
 
     public StockEntity() {}
 }

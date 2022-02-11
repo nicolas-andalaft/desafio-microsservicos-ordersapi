@@ -1,6 +1,6 @@
 package com.nicolas.ordersapi.domain.entities;
 
-import java.time.LocalDateTime;
+import java.sql.Timestamp;
 
 public class UserStockBalanceEntity {
     public Long id_user;
@@ -8,8 +8,8 @@ public class UserStockBalanceEntity {
     public String stock_symbol;
     public String stock_name;
     public Long volume;
-    public LocalDateTime created_on;
-    public LocalDateTime updated_on;
+    public Timestamp created_on;
+    public Timestamp updated_on;
 
     public UserStockBalanceEntity() {}
 }
