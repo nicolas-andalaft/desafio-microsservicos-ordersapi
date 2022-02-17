@@ -34,4 +34,9 @@ public class OrderRepository implements IOrderRepository {
     public Either<Exception, Object> updateOrders(List<OrderEntity> orders) {
         return datasource.updateOrders(orders);
     }
+
+    @Override
+    public Either<Exception, OrderEntity> switchOrderStatus(OrderEntity order) {
+        return datasource.switchOrderStatus(order);
+    }
 }

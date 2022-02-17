@@ -89,4 +89,20 @@ public class PostgreOrderDatasource extends PostgreDatasource implements IOrderD
 
         return Either.right(null);
     }
+
+    @Override
+    public Either<Exception, OrderEntity> switchOrderStatus(OrderEntity order) {
+        String sqlString = String.format("""
+        UPDATE %s SET status = 
+        CASE 
+            WHEN status = 0 THEN 1
+            ELSE 0
+        END
+        RETURNING *""", 
+        tableName);
+
+        return super.execute(sqlString).map((result) -> 
+            OrderModel.fromMap(result.get(0))
+        );
+    }
 }

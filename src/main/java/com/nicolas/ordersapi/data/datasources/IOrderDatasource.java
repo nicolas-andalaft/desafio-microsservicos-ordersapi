@@ -11,4 +11,5 @@ public interface IOrderDatasource {
     public Either<Exception, List<OrderEntity>> getUserOrders(UserEntity user);
     public Either<Exception, List<OrderEntity>> getOrderMatches(OrderEntity order);
     public Either<Exception, Object> updateOrders(List<OrderEntity> orders);
+    public Either<Exception, OrderEntity> switchOrderStatus(OrderEntity order);
 }

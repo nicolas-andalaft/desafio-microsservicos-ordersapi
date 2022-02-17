@@ -45,6 +45,7 @@ class OrdersAPI {
 	private GetUserOrdersUsecase getUserOrdersUsecase;
 	private CheckForOrderMatchUsecase checkForOrderMatchUsecase;
 	private GetUserStockBalanceUsecase getUserStockBalanceUsecase;
+	private SwitchOrderStatusUsecase switchOrderStatusUsecase;
 
 	public OrdersAPI() {
 		// Datasource implementations
@@ -65,11 +66,13 @@ class OrdersAPI {
 		getUserOrdersUsecase = new GetUserOrdersUsecase(orderRepository);
 		checkForOrderMatchUsecase = new CheckForOrderMatchUsecase(orderRepository, userRepository, userStockBalanceRepository);
 		getUserStockBalanceUsecase = new GetUserStockBalanceUsecase(userStockBalanceRepository);
+		switchOrderStatusUsecase = new SwitchOrderStatusUsecase(orderRepository);
 	}
 
 	private final String getOrCreateUser = "/user/{email}";
 	private final String getUserStockBalance = "/user/{id}/balance";
 	private final String getUserOrders = "/user/{id}/orders";
+	private final String switchUserOrder = "/orders/{id}/switch";
 	private final String createOrder = "/orders/new";
 
 	@GetMapping("/")
@@ -130,6 +133,28 @@ class OrdersAPI {
 		var user = new UserEntity();
 		user.id = id_user;
 		var result = getUserOrdersUsecase.call(user);
+
+		if (result.isLeft())
+			return returnServerError(result);
+		else
+			return returnOk(result);
+	}
+
+
+	@GetMapping(switchUserOrder)
+	public ResponseEntity<?> switchUserOrder(@PathVariable String id) {
+		Long order_id = null;
+
+		try {
+			order_id = Long.parseLong(id);
+		}
+		catch (Exception e) {
+			returnBadRequest(Either.left("Parameter in wrong format"));
+		}
+
+		var order = new OrderEntity();
+		order.id = order_id;
+		var result = switchOrderStatusUsecase.call(order);
 
 		if (result.isLeft())
 			return returnServerError(result);
