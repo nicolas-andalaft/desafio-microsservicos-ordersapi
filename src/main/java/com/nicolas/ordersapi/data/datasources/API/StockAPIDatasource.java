@@ -2,6 +2,7 @@ package com.nicolas.ordersapi.data.datasources.API;
 
 import com.nicolas.ordersapi.data.datasources.IStockDatasource;
 import com.nicolas.ordersapi.data.models.StockModel;
+import com.nicolas.ordersapi.domain.entities.OrderEntity;
 import com.nicolas.ordersapi.domain.entities.StockEntity;
 
 import io.vavr.collection.List;
@@ -30,6 +31,16 @@ public class StockAPIDatasource extends APIDatasource implements IStockDatasourc
 
         return response.map((list) -> {
             return list.map((e) -> StockModel.fromMap(e));
+        });
+    }
+
+    @Override
+    public Either<Exception, StockEntity> updateBidAsk(OrderEntity order) {
+        String url = String.format("%s/stocks/%s/update/%s/%s", baseUrl, order.id, order.type, order.price);
+        var response = super.get(url, false);
+
+        return response.map((list) -> {
+            return StockModel.fromMap(list.get(0));
         });
     }
     

@@ -29,8 +29,8 @@ public class UserStockBalanceModel extends UserStockBalanceEntity {
         userStockBalance.stock_symbol = MapGetter.parse(map, "stock_symbol", String.class);
         userStockBalance.stock_name = MapGetter.parse(map, "stock_name", String.class);
         userStockBalance.volume = MapGetter.parse(map, "volume", Long.class);
-        userStockBalance.created_on = MapGetter.parse(map, "createdOn", Timestamp.class);
-        userStockBalance.updated_on = MapGetter.parse(map, "updatedOn", Timestamp.class);
+        userStockBalance.created_on = MapGetter.parse(map, "created_on", Timestamp.class);
+        userStockBalance.updated_on = MapGetter.parse(map, "updated_on", Timestamp.class);
         
         return userStockBalance;
     }   

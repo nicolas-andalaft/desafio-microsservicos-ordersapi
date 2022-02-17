@@ -68,12 +68,13 @@ public abstract class PostgreDatasource {
 	protected Either<Exception, List<Map<String, Object>>> execute(String sqlString) {
         Either<Exception, List<Map<String, Object>>> result;
 
-		var conn = getConnection();
-		if (conn.isLeft())
-			return Either.left(conn.getLeft());
+		var gonnResult = getConnection();
+		if (gonnResult.isLeft())
+			return Either.left(gonnResult.getLeft());
         
+		Connection conn = gonnResult.get();
 		try {
-			var statement = _conn.createStatement();
+			var statement = conn.createStatement();
 			var rs = statement.executeQuery(sqlString);
 			var response = ResultConverter.toMapList(rs);
 			result = Either.right(response);
