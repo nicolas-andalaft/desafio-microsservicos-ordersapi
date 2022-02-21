@@ -1,8 +1,6 @@
 package com.nicolas.ordersapi.data.datasources.postgre;
 
 import java.sql.PreparedStatement;
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
 
 import com.nicolas.ordersapi.data.datasources.IOrderDatasource;
 import com.nicolas.ordersapi.data.models.OrderModel;
@@ -55,10 +53,9 @@ public class PostgreOrderDatasource extends PostgreDatasource implements IOrderD
 
     @Override
     public Either<Exception, Object> updateOrders(List<OrderEntity> orders) {
-        var updated_on = Timestamp.valueOf(LocalDateTime.now());
 
         String sqlString = String.format(
-            "UPDATE %s SET  volume = ?, status = ?, updated_on = ? WHERE id = ?", 
+            "UPDATE %s SET  volume = ?, status = ? WHERE id = ?", 
             tableName
         );
 
@@ -75,8 +72,7 @@ public class PostgreOrderDatasource extends PostgreDatasource implements IOrderD
             for (OrderEntity order : orders) {
                 statement.setLong(1, order.volume);
                 statement.setInt(2, order.status);
-                statement.setTimestamp(3, updated_on);
-                statement.setLong(4, order.id);
+                statement.setLong(3, order.id);
 
                 statement.addBatch();
             }
@@ -98,8 +94,9 @@ public class PostgreOrderDatasource extends PostgreDatasource implements IOrderD
             WHEN status = 0 THEN 1
             ELSE 0
         END
+        WHERE id = %s
         RETURNING *""", 
-        tableName);
+        tableName, order.id);
 
         return super.execute(sqlString).map((result) -> 
             OrderModel.fromMap(result.get(0))

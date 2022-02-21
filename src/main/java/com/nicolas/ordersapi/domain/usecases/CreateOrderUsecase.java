@@ -45,13 +45,19 @@ public class CreateOrderUsecase implements IUsecase<OrderEntity, OrderEntity> {
         order.stock_name = stockResult.get().stock_name;
         order.stock_symbol = stockResult.get().stock_symbol;
 
+        // Return created order
+        var orderResult = createOrder(order);
+        if (orderResult.isLeft())
+        return Either.left(orderResult.getLeft());
+        
+        order = orderResult.get();
+
         // Update Stock bid/ask
         var bidAskResult = stockRepository.updateBidAsk(order);
         if (bidAskResult.isLeft())
             return Either.left(bidAskResult.getLeft());
 
-        // Return created order
-        return createOrder(order);
+        return Either.right(order);
     }  
 
     private Either<Exception, Object> userHasStock(OrderEntity order) {

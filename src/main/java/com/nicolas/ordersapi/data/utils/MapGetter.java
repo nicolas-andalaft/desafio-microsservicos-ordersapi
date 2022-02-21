@@ -6,6 +6,8 @@ public class MapGetter {
     public static <T> T parse(Map<String, Object> map, String key, Class<T> type) {
         try { 
             Object value = map.get(key);
+            if (value == null) return null;
+            
             return type.cast(value);
         } 
         catch (Exception e) { 

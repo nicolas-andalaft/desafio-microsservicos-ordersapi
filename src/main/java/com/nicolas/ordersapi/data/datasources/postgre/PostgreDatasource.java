@@ -80,6 +80,7 @@ public abstract class PostgreDatasource {
 			result = Either.right(response);
 
 		} catch (Exception e) {
+			System.out.println(e.getMessage());
 			result = Either.left(e);
 		}
 
