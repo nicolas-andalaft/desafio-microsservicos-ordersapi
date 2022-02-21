@@ -51,6 +51,11 @@
 			<artifactId>spring-jdbc</artifactId>
 			<version>5.3.15</version>
 		</dependency>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+            <version>8.5.0</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -60,6 +65,18 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
+            <plugin>
+				<groupId>org.flywaydb</groupId>
+				<artifactId>flyway-maven-plugin</artifactId>
+				<version>6.5.5</version>
+				<configuration> 
+					<url>jdbc:postgresql://localhost:5432/orders_db</url> 
+					<user>postgres</user> 
+					<password>postgres</password>
+					<locations>db/migration</locations> 
+					<baselineOnMigrate>true</baselineOnMigrate>
+				</configuration>
+			</plugin>
         </plugins>
     </build>
 
