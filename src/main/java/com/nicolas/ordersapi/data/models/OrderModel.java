@@ -1,7 +1,5 @@
 package com.nicolas.ordersapi.data.models;
 
-import java.math.BigDecimal;
-import java.sql.Timestamp;
 import java.util.Map;
 import com.nicolas.ordersapi.data.utils.MapGetter;
 import com.nicolas.ordersapi.domain.entities.OrderEntity;
@@ -29,17 +27,17 @@ public class OrderModel extends OrderEntity {
     public static OrderModel fromMap(Map<String, Object> map) {
         OrderModel userOrder = new OrderModel();
         
-        userOrder.id = MapGetter.parse(map, "id", Long.class);
-        userOrder.id_user = MapGetter.parse(map, "id_user", Long.class);
-        userOrder.id_stock = MapGetter.parse(map, "id_stock", Long.class);
-        userOrder.stock_symbol = MapGetter.parse(map, "stock_symbol", String.class);
-        userOrder.stock_name = MapGetter.parse(map, "stock_name", String.class);
-        userOrder.volume = MapGetter.parse(map, "volume", Long.class);
-        userOrder.price = MapGetter.parse(map, "price", BigDecimal.class);
-        userOrder.type = MapGetter.parse(map, "type", Integer.class);
-        userOrder.status = MapGetter.parse(map, "status", Integer.class);
-        userOrder.created_on = MapGetter.parse(map, "created_on", Timestamp.class);
-        userOrder.updated_on = MapGetter.parse(map, "updated_on", Timestamp.class);
+        userOrder.id = MapGetter.getLong(map, "id");
+        userOrder.id_user = MapGetter.getLong(map, "id_user");
+        userOrder.id_stock = MapGetter.getLong(map, "id_stock");
+        userOrder.stock_symbol = MapGetter.getString(map, "stock_symbol");
+        userOrder.stock_name = MapGetter.getString(map, "stock_name");
+        userOrder.volume = MapGetter.getLong(map, "volume");
+        userOrder.price = MapGetter.getBigDecimal(map, "price");
+        userOrder.type = MapGetter.getInteger(map, "type");
+        userOrder.status = MapGetter.getInteger(map, "status");
+        userOrder.created_on = MapGetter.getTimestamp(map, "created_on");
+        userOrder.updated_on = MapGetter.getTimestamp(map, "updated_on");
         
         return userOrder;
     }   

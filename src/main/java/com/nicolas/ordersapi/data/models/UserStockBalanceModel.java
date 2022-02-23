@@ -1,6 +1,5 @@
 package com.nicolas.ordersapi.data.models;
 
-import java.sql.Timestamp;
 import java.util.Map;
 
 import com.nicolas.ordersapi.data.utils.MapGetter;
@@ -24,13 +23,14 @@ public class UserStockBalanceModel extends UserStockBalanceEntity {
     
     public static UserStockBalanceModel fromMap(Map<String, Object> map) {
         UserStockBalanceModel userStockBalance = new UserStockBalanceModel();
-        userStockBalance.id_user = MapGetter.parse(map, "id_user", Long.class);
-        userStockBalance.id_stock = MapGetter.parse(map, "id_stock", Long.class);
-        userStockBalance.stock_symbol = MapGetter.parse(map, "stock_symbol", String.class);
-        userStockBalance.stock_name = MapGetter.parse(map, "stock_name", String.class);
-        userStockBalance.volume = MapGetter.parse(map, "volume", Long.class);
-        userStockBalance.created_on = MapGetter.parse(map, "created_on", Timestamp.class);
-        userStockBalance.updated_on = MapGetter.parse(map, "updated_on", Timestamp.class);
+        
+        userStockBalance.id_user = MapGetter.getLong(map, "id_user");
+        userStockBalance.id_stock = MapGetter.getLong(map, "id_stock");
+        userStockBalance.stock_symbol = MapGetter.getString(map, "stock_symbol");
+        userStockBalance.stock_name = MapGetter.getString(map, "stock_name");
+        userStockBalance.volume = MapGetter.getLong(map, "volume");
+        userStockBalance.created_on = MapGetter.getTimestamp(map, "created_on");
+        userStockBalance.updated_on = MapGetter.getTimestamp(map, "updated_on");
         
         return userStockBalance;
     }   
