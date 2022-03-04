@@ -66,7 +66,7 @@ class OrdersAPI {
 		getUserOrdersUsecase = new GetUserOrdersUsecase(orderRepository);
 		checkForOrderMatchUsecase = new CheckForOrderMatchUsecase(orderRepository, userRepository, userStockBalanceRepository);
 		getUserStockBalanceUsecase = new GetUserStockBalanceUsecase(userStockBalanceRepository);
-		switchOrderStatusUsecase = new SwitchOrderStatusUsecase(orderRepository);
+		switchOrderStatusUsecase = new SwitchOrderStatusUsecase(orderRepository, stockRepository);
 	}
 
 	private final String getOrCreateUser = "/user/{email}";

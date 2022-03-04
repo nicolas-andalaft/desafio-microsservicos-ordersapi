@@ -17,7 +17,7 @@ public class StockAPIDatasource extends APIDatasource implements IStockDatasourc
     @Override
     
     public Either<Exception, StockEntity> getStock(StockEntity stock) {
-        var response = super.get(super.baseUrl + "/stocks/" + stock.id, false);
+        var response = super.execute(super.baseUrl + "/stocks/" + stock.id, null, false);
 
         return response.map((list) -> {
             if (list.size() == 0) return null;
@@ -27,7 +27,7 @@ public class StockAPIDatasource extends APIDatasource implements IStockDatasourc
 
     @Override
     public Either<Exception, List<StockEntity>> getRandomStocks(int qty) {
-        var response = super.get(super.baseUrl + "/stocks/random/" + qty, true);
+        var response = super.execute(super.baseUrl + "/stocks/random/" + qty, null, true);
 
         return response.map((list) -> {
             return list.map((e) -> StockModel.fromMap(e));
@@ -35,9 +35,19 @@ public class StockAPIDatasource extends APIDatasource implements IStockDatasourc
     }
 
     @Override
-    public Either<Exception, StockEntity> updateBidAsk(OrderEntity order) {
-        String url = String.format("%s/stocks/%s/update/%s/%s", baseUrl, order.id, order.type, order.price);
-        var response = super.get(url, false);
+    public Either<Exception, StockEntity> tryUpdateBidAsk(OrderEntity order) {
+        String url = String.format("%s/stocks/%s/check/%s/%s", baseUrl, order.id_stock, order.type, order.price);
+        var response = super.execute(url, null, false);
+
+        return response.map((list) -> {
+            return StockModel.fromMap(list.get(0));
+        });
+    }
+
+    @Override
+    public Either<Exception, StockEntity> forceUpdateBidAsk(StockEntity stock) {
+        String url = String.format("%s/stocks/%s/update", baseUrl, stock.id);
+        var response = super.execute(url, StockModel.toMap(stock), false);
 
         return response.map((list) -> {
             return StockModel.fromMap(list.get(0));

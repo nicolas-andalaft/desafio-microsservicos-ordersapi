@@ -2,6 +2,8 @@ package com.nicolas.ordersapi.data.repositories;
 
 import com.nicolas.ordersapi.data.datasources.IOrderDatasource;
 import com.nicolas.ordersapi.domain.entities.OrderEntity;
+import com.nicolas.ordersapi.domain.entities.OrderHistoryEntity;
+import com.nicolas.ordersapi.domain.entities.StockEntity;
 import com.nicolas.ordersapi.domain.entities.UserEntity;
 import com.nicolas.ordersapi.domain.repositories.IOrderRepository;
 
@@ -36,7 +38,17 @@ public class OrderRepository implements IOrderRepository {
     }
 
     @Override
+    public Either<Exception, OrderHistoryEntity> createOrderHistory(OrderHistoryEntity orderHistory) {
+        return datasource.createOrderHistory(orderHistory);
+    }
+
+    @Override
     public Either<Exception, OrderEntity> switchOrderStatus(OrderEntity order) {
         return datasource.switchOrderStatus(order);
+    }
+
+    @Override
+    public Either<Exception, StockEntity> getStockBidAsk(StockEntity stock) {
+        return datasource.getStockBidAsk(stock);
     }
 }

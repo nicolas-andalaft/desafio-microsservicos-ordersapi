@@ -33,6 +33,16 @@ create table user_orders(
     updated_on timestamp not null default current_timestamp
 );
 
+create table orders_history (
+	id bigserial primary key,
+	id_order bigint references user_orders(id),
+	id_match_order bigint references user_orders(id),
+	match_volume bigint not null,
+	match_price numeric not null,
+	order_type int not null,
+	created_on timestamp null default current_timestamp
+);
+
 create or replace function set_updated_on()
 returns trigger as $$
 BEGIN

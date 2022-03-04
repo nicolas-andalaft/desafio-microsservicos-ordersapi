@@ -26,8 +26,13 @@ public class StockRepository implements IStockRepository {
     }
 
     @Override
-    public Either<Exception, StockEntity> updateBidAsk(OrderEntity order) {
-        return datasource.updateBidAsk(order);
+    public Either<Exception, StockEntity> tryUpdateBidAsk(OrderEntity order) {
+        return datasource.tryUpdateBidAsk(order);
+    }
+
+    @Override
+    public Either<Exception, StockEntity> forceUpdateBidAsk(StockEntity stock) {
+        return datasource.forceUpdateBidAsk(stock);
     }
     
 }

@@ -2,19 +2,41 @@ package com.nicolas.ordersapi.domain.usecases;
 
 import com.nicolas.ordersapi.core.IUsecase;
 import com.nicolas.ordersapi.domain.entities.OrderEntity;
+import com.nicolas.ordersapi.domain.entities.StockEntity;
 import com.nicolas.ordersapi.domain.repositories.IOrderRepository;
+import com.nicolas.ordersapi.domain.repositories.IStockRepository;
 
 import io.vavr.control.Either;
 
 public class SwitchOrderStatusUsecase implements IUsecase<OrderEntity, OrderEntity>{
-    private IOrderRepository repository;
+    private IOrderRepository orderRepository;
+    private IStockRepository stockRepository;
 
-    public SwitchOrderStatusUsecase(IOrderRepository orderRepository) {
-        repository = orderRepository;
+    public SwitchOrderStatusUsecase(IOrderRepository orderRepository, IStockRepository stockRepository) {
+        this.orderRepository = orderRepository;
+        this.stockRepository = stockRepository;
     }
 
     @Override
     public Either<Exception, OrderEntity> call(OrderEntity order) {
-        return repository.switchOrderStatus(order);
+        var switchResult = orderRepository.switchOrderStatus(order);
+        if (switchResult.isLeft())
+            return switchResult;
+
+        var stock = new StockEntity();
+        stock.id = switchResult.get().id_stock;
+
+        var bidAskResult = orderRepository.getStockBidAsk(stock);
+        if (bidAskResult.isLeft())
+            return Either.left(bidAskResult.getLeft());
+
+        var newStock = bidAskResult.get();
+        newStock.id = stock.id;
+
+        var updateBidAskResult = stockRepository.forceUpdateBidAsk(newStock);
+        if (updateBidAskResult.isLeft())
+            return Either.left(updateBidAskResult.getLeft());
+
+        return switchResult;
     }
 }

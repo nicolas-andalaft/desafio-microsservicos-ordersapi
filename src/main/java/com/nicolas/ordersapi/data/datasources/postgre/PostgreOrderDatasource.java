@@ -4,7 +4,10 @@ import java.sql.PreparedStatement;
 
 import com.nicolas.ordersapi.data.datasources.IOrderDatasource;
 import com.nicolas.ordersapi.data.models.OrderModel;
+import com.nicolas.ordersapi.data.models.StockModel;
 import com.nicolas.ordersapi.domain.entities.OrderEntity;
+import com.nicolas.ordersapi.domain.entities.OrderHistoryEntity;
+import com.nicolas.ordersapi.domain.entities.StockEntity;
 import com.nicolas.ordersapi.domain.entities.UserEntity;
 
 import io.vavr.collection.List;
@@ -87,6 +90,20 @@ public class PostgreOrderDatasource extends PostgreDatasource implements IOrderD
     }
 
     @Override
+    public Either<Exception, OrderHistoryEntity> createOrderHistory(OrderHistoryEntity orderHistory) {
+        String sqlString = String.format("""
+            INSERT INTO orders_history(id_order, id_match_order, match_volume, match_price, order_type)
+            VALUES (%s, %s, %s, %s, %s) RETURNING *""", 
+            orderHistory.id_order, orderHistory.id_match_order, orderHistory.match_volume, orderHistory.match_price, orderHistory.order_type
+        );
+
+        return super.execute(sqlString).map((list) -> {
+            if (list == null || list.length() == 0) return null;
+            return OrderHistoryEntity.fromMap(list.get(0));
+        });
+    }
+
+    @Override
     public Either<Exception, OrderEntity> switchOrderStatus(OrderEntity order) {
         String sqlString = String.format("""
         UPDATE %s SET status = 
@@ -99,7 +116,25 @@ public class PostgreOrderDatasource extends PostgreDatasource implements IOrderD
         tableName, order.id);
 
         return super.execute(sqlString).map((result) -> 
+        
             OrderModel.fromMap(result.get(0))
         );
+    }
+
+    @Override
+    public Either<Exception, StockEntity> getStockBidAsk(StockEntity stock) {
+        String sqlString = String.format("""
+            SELECT 
+                MIN(CASE WHEN type = 1 THEN price END) AS bid_min,
+                MAX(CASE WHEN type = 1 THEN price END) AS bid_max,
+                MIN(CASE WHEN type = 0 THEN price END) AS ask_min,
+                MAX(CASE WHEN type = 0 THEN price END) AS ask_max
+            FROM %s WHERE id_stock = %s and status = 1""", 
+            tableName, stock.id);
+
+        return super.execute(sqlString).map((list) -> { 
+            if (list.length() == 0) return null;
+            return StockModel.fromMap(list.get(0));
+        });
     }
 }

@@ -5,6 +5,7 @@ import java.util.ArrayList;
 
 import com.nicolas.ordersapi.core.IUsecase;
 import com.nicolas.ordersapi.domain.entities.OrderEntity;
+import com.nicolas.ordersapi.domain.entities.OrderHistoryEntity;
 import com.nicolas.ordersapi.domain.entities.UserEntity;
 import com.nicolas.ordersapi.domain.entities.UserStockBalanceEntity;
 import com.nicolas.ordersapi.domain.repositories.IOrderRepository;
@@ -68,6 +69,11 @@ public class CheckForOrderMatchUsecase implements IUsecase<OrderEntity, Object>{
         var updateOrders = adjustOrders(order, match);
         if (updateOrders.isLeft())
             anyException = updateOrders.getLeft();
+
+        // Create Orders History
+        var ordersHistory = createOrderHistory(order, match);
+        if (ordersHistory.isLeft())
+            anyException = ordersHistory.getLeft();
 
         // Adjust Balances
         var updateBalances = adjustBalances(order, match);
@@ -145,5 +151,17 @@ public class CheckForOrderMatchUsecase implements IUsecase<OrderEntity, Object>{
             return Either.left(anyException);
 
         return Either.right(null);
+    }
+
+    private Either<Exception, OrderHistoryEntity> createOrderHistory(OrderEntity order, OrderEntity match) {
+        var orderHistory = new OrderHistoryEntity();
+
+        orderHistory.id_order = order.id;
+        orderHistory.id_match_order = match.id;
+        orderHistory.match_volume = transaction_volume;
+        orderHistory.match_price = BigDecimal.valueOf(transaction_price);
+        orderHistory.order_type = order.type;
+        
+        return orderRepository.createOrderHistory(orderHistory);
     }
 }

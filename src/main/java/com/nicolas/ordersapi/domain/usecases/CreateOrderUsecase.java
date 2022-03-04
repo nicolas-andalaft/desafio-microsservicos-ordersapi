@@ -53,7 +53,7 @@ public class CreateOrderUsecase implements IUsecase<OrderEntity, OrderEntity> {
         order = orderResult.get();
 
         // Update Stock bid/ask
-        var bidAskResult = stockRepository.updateBidAsk(order);
+        var bidAskResult = stockRepository.tryUpdateBidAsk(order);
         if (bidAskResult.isLeft())
             return Either.left(bidAskResult.getLeft());
 
