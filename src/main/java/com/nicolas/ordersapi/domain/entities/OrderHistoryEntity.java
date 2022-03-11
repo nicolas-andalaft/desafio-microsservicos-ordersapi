@@ -2,33 +2,57 @@ package com.nicolas.ordersapi.domain.entities;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
-import java.util.Map;
-
-import com.nicolas.ordersapi.data.utils.MapGetter;
 
 public class OrderHistoryEntity {
-        
     public Long id;
-    public Long id_order;
-    public Long id_match_order;
-    public Long match_volume;
-    public BigDecimal match_price;
-    public Integer order_type;
+    public UserEntity order_user;
+    public UserEntity match_user;
+    public OrderEntity order;
+    public OrderEntity match;
+    public Long transaction_volume;
+    public BigDecimal transaction_price;
+    public Integer status;
     public Timestamp created_on;
 
-    public OrderHistoryEntity() {}  
-    
-    public static OrderHistoryEntity fromMap(Map<String, Object> map) {
-        var ordersHistory = new OrderHistoryEntity();
+    public OrderHistoryEntity() {};
 
-        ordersHistory.id = MapGetter.getLong(map, "id");
-        ordersHistory.id_order = MapGetter.getLong(map, "id_order");
-        ordersHistory.id_match_order = MapGetter.getLong(map, "id_match_order");
-        ordersHistory.match_volume = MapGetter.getLong(map, "match_volume");
-        ordersHistory.match_price = MapGetter.getBigDecimal(map, "match_price");
-        ordersHistory.order_type = MapGetter.getInteger(map, "order_type");
-        ordersHistory.created_on = MapGetter.getTimestamp(map, "created_on");
+    public void order_user(Long id) {
+        var user = new UserEntity();
+        user.id = id;
+        this.order_user = user;
+    }
 
-        return ordersHistory;
+    public void match_user(Long id) {
+        var user = new UserEntity();
+        user.id = id;
+        this.match_user = user;
+    }
+
+    public void order(Long id) {
+        var order = new OrderEntity();
+        order.id = id;
+        this.order = order;
+    }
+
+    public void match(Long id) {
+        var order = new OrderEntity();
+        order.id = id;
+        this.order = order;
+    }
+
+    public Long id_order_user() {
+        return this.order_user == null ? null : this.order_user.id;
+    }
+
+    public Long id_match_user() {
+        return this.match_user == null ? null : this.match_user.id;
+    }
+
+    public Long id_order() {
+        return this.order == null ? null : this.order.id;
+    }
+
+    public Long id_match() {
+        return this.match == null ? null : this.match.id;
     }
 }

@@ -1,5 +1,6 @@
 package com.nicolas.ordersapi.domain.repositories;
 
+
 import com.nicolas.ordersapi.domain.entities.OrderEntity;
 import com.nicolas.ordersapi.domain.entities.StockEntity;
 

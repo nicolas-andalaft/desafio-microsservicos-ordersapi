@@ -35,11 +35,13 @@ create table user_orders(
 
 create table orders_history (
 	id bigserial primary key,
+	id_order_user bigint references users(id),
+	id_match_user bigint references users(id),
 	id_order bigint references user_orders(id),
-	id_match_order bigint references user_orders(id),
-	match_volume bigint not null,
-	match_price numeric not null,
-	order_type int not null,
+	id_match bigint references user_orders(id),
+	transaction_volume bigint not null,
+	transaction_price numeric not null,
+    status int not null default 1,
 	created_on timestamp null default current_timestamp
 );
 

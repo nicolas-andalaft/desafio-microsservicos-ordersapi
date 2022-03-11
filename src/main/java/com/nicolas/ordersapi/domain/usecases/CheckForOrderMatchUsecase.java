@@ -155,12 +155,13 @@ public class CheckForOrderMatchUsecase implements IUsecase<OrderEntity, Object>{
 
     private Either<Exception, OrderHistoryEntity> createOrderHistory(OrderEntity order, OrderEntity match) {
         var orderHistory = new OrderHistoryEntity();
-
-        orderHistory.id_order = order.id;
-        orderHistory.id_match_order = match.id;
-        orderHistory.match_volume = transaction_volume;
-        orderHistory.match_price = BigDecimal.valueOf(transaction_price);
-        orderHistory.order_type = order.type;
+        
+        orderHistory.order_user(order.id_user);
+        orderHistory.match_user(match.id_user);
+        orderHistory.order(order.id);
+        orderHistory.match(match.id);
+        orderHistory.transaction_volume = transaction_volume;
+        orderHistory.transaction_price = BigDecimal.valueOf(transaction_price);
         
         return orderRepository.createOrderHistory(orderHistory);
     }

@@ -13,7 +13,8 @@ public interface IOrderDatasource {
     public Either<Exception, List<OrderEntity>> getUserOrders(UserEntity user);
     public Either<Exception, List<OrderEntity>> getOrderMatches(OrderEntity order);
     public Either<Exception, Object> updateOrders(List<OrderEntity> orders);
-    public Either<Exception, OrderHistoryEntity> createOrderHistory(OrderHistoryEntity orderHistory);
     public Either<Exception, OrderEntity> switchOrderStatus(OrderEntity order);
     public Either<Exception, StockEntity> getStockBidAsk(StockEntity stock);
+    public Either<Exception, OrderHistoryEntity> createOrderHistory(OrderHistoryEntity orderHistory);
+    public Either<Exception, List<OrderHistoryEntity>> getUserOrdersHistory(UserEntity user, Integer status);
 }

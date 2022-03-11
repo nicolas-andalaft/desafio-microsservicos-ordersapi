@@ -18,7 +18,7 @@ public class GetUserOrdersUsecase implements IUsecase<UserEntity, List<OrderEnti
 
     @Override
     public Either<Exception, List<OrderEntity>> call(UserEntity user) {
-        return repository.getUserOrders(user).map((list) -> list.asJava());
+        return repository.getUserOrders(user).map(list -> list.asJava());
     }
     
 }

@@ -3,6 +3,7 @@ package com.nicolas.ordersapi.data.datasources.postgre;
 import java.sql.PreparedStatement;
 
 import com.nicolas.ordersapi.data.datasources.IOrderDatasource;
+import com.nicolas.ordersapi.data.models.OrderHistoryModel;
 import com.nicolas.ordersapi.data.models.OrderModel;
 import com.nicolas.ordersapi.data.models.StockModel;
 import com.nicolas.ordersapi.domain.entities.OrderEntity;
@@ -90,20 +91,6 @@ public class PostgreOrderDatasource extends PostgreDatasource implements IOrderD
     }
 
     @Override
-    public Either<Exception, OrderHistoryEntity> createOrderHistory(OrderHistoryEntity orderHistory) {
-        String sqlString = String.format("""
-            INSERT INTO orders_history(id_order, id_match_order, match_volume, match_price, order_type)
-            VALUES (%s, %s, %s, %s, %s) RETURNING *""", 
-            orderHistory.id_order, orderHistory.id_match_order, orderHistory.match_volume, orderHistory.match_price, orderHistory.order_type
-        );
-
-        return super.execute(sqlString).map((list) -> {
-            if (list == null || list.length() == 0) return null;
-            return OrderHistoryEntity.fromMap(list.get(0));
-        });
-    }
-
-    @Override
     public Either<Exception, OrderEntity> switchOrderStatus(OrderEntity order) {
         String sqlString = String.format("""
         UPDATE %s SET status = 
@@ -135,6 +122,41 @@ public class PostgreOrderDatasource extends PostgreDatasource implements IOrderD
         return super.execute(sqlString).map((list) -> { 
             if (list.length() == 0) return null;
             return StockModel.fromMap(list.get(0));
+        });
+    }
+
+    @Override
+    public Either<Exception, OrderHistoryEntity> createOrderHistory(OrderHistoryEntity orderHistory) {
+        String sqlString = String.format("""
+            INSERT INTO orders_history(id_order_user, id_match_user, id_order, id_match, transaction_volume, transaction_price)
+            VALUES (%s, %s, %s, %s, %s, %)
+            RETURNING *""", 
+            orderHistory.id_order_user(), orderHistory.id_match_user(), orderHistory.id_order(), orderHistory.id_match(),
+            orderHistory.transaction_volume, orderHistory.transaction_price);
+
+        return super.execute(sqlString).map((list) -> { 
+            if (list.length() == 0) return null;
+            return OrderHistoryModel.fromMap(list.get(0));
+        });
+    }
+
+    @Override
+    public Either<Exception, List<OrderHistoryEntity>> getUserOrdersHistory(UserEntity user, Integer status) {
+        String sqlString = String.format("""
+            SELECT 
+                H.*, O.stock_symbol, O.stock_name
+            FROM orders_history H 
+            INNER JOIN user_orders O
+                ON O.id = H.id_order
+            WHERE H.id_order_user = %s""", 
+            user.id);
+
+        if (status != null)
+            sqlString += " AND H.status = " + status;
+
+        return super.execute(sqlString).map((list) -> { 
+            if (list.length() == 0) return null;
+            return list.map(e -> OrderHistoryModel.fromMap(e));
         });
     }
 }

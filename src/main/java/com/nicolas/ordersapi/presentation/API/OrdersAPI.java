@@ -8,6 +8,7 @@ import com.nicolas.ordersapi.data.datasources.postgre.*;
 import com.nicolas.ordersapi.data.models.OrderModel;
 import com.nicolas.ordersapi.data.repositories.*;
 import com.nicolas.ordersapi.domain.entities.OrderEntity;
+import com.nicolas.ordersapi.domain.entities.OrderHistoryEntity;
 import com.nicolas.ordersapi.domain.entities.UserEntity;
 import com.nicolas.ordersapi.domain.repositories.*;
 import com.nicolas.ordersapi.domain.usecases.*;
@@ -46,6 +47,7 @@ class OrdersAPI {
 	private CheckForOrderMatchUsecase checkForOrderMatchUsecase;
 	private GetUserStockBalanceUsecase getUserStockBalanceUsecase;
 	private SwitchOrderStatusUsecase switchOrderStatusUsecase;
+	private GetUserOrdersHistoryUsecase getUserOrdersHistoryUsecase;
 
 	public OrdersAPI() {
 		// Datasource implementations
@@ -67,13 +69,15 @@ class OrdersAPI {
 		checkForOrderMatchUsecase = new CheckForOrderMatchUsecase(orderRepository, userRepository, userStockBalanceRepository);
 		getUserStockBalanceUsecase = new GetUserStockBalanceUsecase(userStockBalanceRepository);
 		switchOrderStatusUsecase = new SwitchOrderStatusUsecase(orderRepository, stockRepository);
+		getUserOrdersHistoryUsecase = new GetUserOrdersHistoryUsecase(orderRepository);
 	}
 
 	private final String getOrCreateUser = "/user/{email}";
 	private final String getUserStockBalance = "/user/{id}/balance";
 	private final String getUserOrders = "/user/{id}/orders";
-	private final String switchUserOrder = "/orders/{id}/switch";
+	private final String getUserOrdersHistory = "/user/{id}/orders/history/{status}";
 	private final String createOrder = "/orders/new";
+	private final String switchUserOrder = "/orders/{id}/switch";
 
 	@GetMapping("/")
 	public String root() { return "OrdersAPI"; }
@@ -140,27 +144,34 @@ class OrdersAPI {
 			return returnOk(result);
 	}
 
-
-	@GetMapping(switchUserOrder)
-	public ResponseEntity<?> switchUserOrder(@PathVariable String id) {
-		Long order_id = null;
-
+	@GetMapping(getUserOrdersHistory)
+	public ResponseEntity<?> getUserOrdersHistory(@PathVariable String id, @PathVariable String status) {
+		Long id_user;
+		Integer status_value;
 		try {
-			order_id = Long.parseLong(id);
-		}
-		catch (Exception e) {
-			returnBadRequest(Either.left("Parameter in wrong format"));
+			id_user = Long.parseLong(id);
+
+			status_value = Integer.parseInt(status);
+			// -1 returns all values
+			if (status_value == -1)
+				status_value = null;
+
+		} catch (Exception e) {
+			return returnBadRequest(Either.left("Parameters with wrong type"));
 		}
 
-		var order = new OrderEntity();
-		order.id = order_id;
-		var result = switchOrderStatusUsecase.call(order);
+		var orderHistory = new OrderHistoryEntity();
+		orderHistory.order_user(id_user);
+		orderHistory.status = status_value;
+
+		var result = getUserOrdersHistoryUsecase.call(orderHistory);
 
 		if (result.isLeft())
 			return returnServerError(result);
 		else
 			return returnOk(result);
 	}
+	
 
 	@PostMapping(createOrder)
 	@SuppressWarnings("unchecked")
@@ -190,6 +201,27 @@ class OrdersAPI {
 		else 
 			return returnOk(result);
 		
+	}
+
+	@GetMapping(switchUserOrder)
+	public ResponseEntity<?> switchUserOrder(@PathVariable String id) {
+		Long order_id = null;
+
+		try {
+			order_id = Long.parseLong(id);
+		}
+		catch (Exception e) {
+			returnBadRequest(Either.left("Parameter in wrong format"));
+		}
+
+		var order = new OrderEntity();
+		order.id = order_id;
+		var result = switchOrderStatusUsecase.call(order);
+
+		if (result.isLeft())
+			return returnServerError(result);
+		else
+			return returnOk(result);
 	}
 
 	private ResponseEntity<?> returnServerError(Either<?,?> result) {

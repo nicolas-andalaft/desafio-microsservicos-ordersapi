@@ -1,6 +1,5 @@
 package com.nicolas.ordersapi.domain.repositories;
 
-
 import com.nicolas.ordersapi.domain.entities.UserEntity;
 import com.nicolas.ordersapi.domain.entities.UserStockBalanceEntity;
 

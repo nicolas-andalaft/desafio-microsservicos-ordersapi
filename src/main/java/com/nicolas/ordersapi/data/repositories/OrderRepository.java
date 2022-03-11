@@ -34,12 +34,7 @@ public class OrderRepository implements IOrderRepository {
 
     @Override
     public Either<Exception, Object> updateOrders(List<OrderEntity> orders) {
-        return datasource.updateOrders(orders);
-    }
-
-    @Override
-    public Either<Exception, OrderHistoryEntity> createOrderHistory(OrderHistoryEntity orderHistory) {
-        return datasource.createOrderHistory(orderHistory);
+        return datasource.updateOrders(io.vavr.collection.List.ofAll(orders));
     }
 
     @Override
@@ -50,5 +45,15 @@ public class OrderRepository implements IOrderRepository {
     @Override
     public Either<Exception, StockEntity> getStockBidAsk(StockEntity stock) {
         return datasource.getStockBidAsk(stock);
+    }
+
+    @Override
+    public Either<Exception, OrderHistoryEntity> createOrderHistory(OrderHistoryEntity orderHistory) {
+        return datasource.createOrderHistory(orderHistory);
+    }
+
+    @Override
+    public Either<Exception, List<OrderHistoryEntity>> getUserOrdersHistory(UserEntity user, Integer status) {
+        return datasource.getUserOrdersHistory(user, status);
     }
 }
