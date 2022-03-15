@@ -48,6 +48,7 @@ class OrdersAPI {
 	private GetUserStockBalanceUsecase getUserStockBalanceUsecase;
 	private SwitchOrderStatusUsecase switchOrderStatusUsecase;
 	private GetUserOrdersHistoryUsecase getUserOrdersHistoryUsecase;
+	private SwitchOrderHistoryStatusUsecase switchOrderHistoryStatusUsecase;
 
 	public OrdersAPI() {
 		// Datasource implementations
@@ -70,6 +71,7 @@ class OrdersAPI {
 		getUserStockBalanceUsecase = new GetUserStockBalanceUsecase(userStockBalanceRepository);
 		switchOrderStatusUsecase = new SwitchOrderStatusUsecase(orderRepository, stockRepository);
 		getUserOrdersHistoryUsecase = new GetUserOrdersHistoryUsecase(orderRepository);
+		switchOrderHistoryStatusUsecase = new SwitchOrderHistoryStatusUsecase(orderRepository);
 	}
 
 	private final String getOrCreateUser = "/user/{email}";
@@ -78,6 +80,7 @@ class OrdersAPI {
 	private final String getUserOrdersHistory = "/user/{id}/orders/history/{status}";
 	private final String createOrder = "/orders/new";
 	private final String switchUserOrder = "/orders/{id}/switch";
+	private final String switchUserOrderHistory = "/orders/history/{id}/switch";
 
 	@GetMapping("/")
 	public String root() { return "OrdersAPI"; }
@@ -171,7 +174,6 @@ class OrdersAPI {
 		else
 			return returnOk(result);
 	}
-	
 
 	@PostMapping(createOrder)
 	@SuppressWarnings("unchecked")
@@ -217,6 +219,27 @@ class OrdersAPI {
 		var order = new OrderEntity();
 		order.id = order_id;
 		var result = switchOrderStatusUsecase.call(order);
+
+		if (result.isLeft())
+			return returnServerError(result);
+		else
+			return returnOk(result);
+	}
+
+	@GetMapping(switchUserOrderHistory)
+	public ResponseEntity<?> switchUserOrderHistory(@PathVariable String id) {
+		Long order_id = null;
+
+		try {
+			order_id = Long.parseLong(id);
+		}
+		catch (Exception e) {
+			returnBadRequest(Either.left("Parameter in wrong format"));
+		}
+
+		var orderHistory = new OrderHistoryEntity();
+		orderHistory.id = order_id;
+		var result = switchOrderHistoryStatusUsecase.call(orderHistory);
 
 		if (result.isLeft())
 			return returnServerError(result);

@@ -159,4 +159,22 @@ public class PostgreOrderDatasource extends PostgreDatasource implements IOrderD
             return list.map(e -> OrderHistoryModel.fromMap(e));
         });
     }
+
+    @Override
+    public Either<Exception, OrderHistoryEntity> switchOrderHistoryStatus(OrderHistoryEntity orderHistory) {
+        String sqlString = String.format("""
+            UPDATE orders_history SET status = 
+            CASE 
+                WHEN status = 0 THEN 1
+                ELSE 0
+            END
+            WHERE id = %s
+            RETURNING *""", 
+            orderHistory.id);
+
+        return super.execute(sqlString).map((list) -> { 
+            if (list.length() == 0) return null;
+            return OrderHistoryModel.fromMap(list.get(0));
+        });
+    }
 }

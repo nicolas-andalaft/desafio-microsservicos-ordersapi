@@ -18,4 +18,5 @@ public interface IOrderRepository {
     public Either<Exception, StockEntity> getStockBidAsk(StockEntity stock);
     public Either<Exception, OrderHistoryEntity> createOrderHistory(OrderHistoryEntity orderHistory);
     public Either<Exception, List<OrderHistoryEntity>> getUserOrdersHistory(UserEntity user, Integer status);
+    public Either<Exception, OrderHistoryEntity> switchOrderHistoryStatus(OrderHistoryEntity orderHistory);
 }

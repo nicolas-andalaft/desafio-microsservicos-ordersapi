@@ -56,4 +56,9 @@ public class OrderRepository implements IOrderRepository {
     public Either<Exception, List<OrderHistoryEntity>> getUserOrdersHistory(UserEntity user, Integer status) {
         return datasource.getUserOrdersHistory(user, status);
     }
+
+    @Override
+    public Either<Exception, OrderHistoryEntity> switchOrderHistoryStatus(OrderHistoryEntity orderHistory) {
+        return datasource.switchOrderHistoryStatus(orderHistory);
+    }
 }
