@@ -1,10 +1,11 @@
 package com.nicolas.ordersapi.domain.repositories;
 
 
+import java.util.List;
+
 import com.nicolas.ordersapi.domain.entities.OrderEntity;
 import com.nicolas.ordersapi.domain.entities.StockEntity;
 
-import io.vavr.collection.List;
 import io.vavr.control.Either;
 
 public interface IStockRepository {

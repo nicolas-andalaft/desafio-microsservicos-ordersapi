@@ -18,7 +18,7 @@ public class GetUserOrdersHistoryUsecase implements IUsecase<OrderHistoryEntity,
 
     @Override
     public Either<Exception, List<OrderHistoryEntity>> call(OrderHistoryEntity orderHistory) {
-        return repository.getUserOrdersHistory(orderHistory.order_user, orderHistory.status).map(list -> list == null ? null : list.asJava());
+        return repository.getUserOrdersHistory(orderHistory.getOrderUser(), orderHistory.getStatus());
     }
     
 }

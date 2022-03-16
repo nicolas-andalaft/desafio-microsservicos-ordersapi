@@ -35,12 +35,12 @@ public class GetOrCreateUserUsecase implements IUsecase<UserEntity, UserEntity> 
         if (userSearch.isLeft()) return userSearch;
         
         // Return found user
-        if (userSearch.get() != null && userSearch.get().id != null) {
+        if (userSearch.get() != null && userSearch.get().getId() != null) {
             return Either.right(userSearch.get());
         }
 
         // Create user if no match was found 
-        user.dollar_balance = new BigDecimal(10000);
+        user.setDollarBalance(new BigDecimal(10000));
 
         var userResult = userRepository.createUser(user);
         if (userResult.isLeft()) return userResult;
@@ -72,13 +72,13 @@ public class GetOrCreateUserUsecase implements IUsecase<UserEntity, UserEntity> 
 
         // Insert userstockbalance
         for (StockEntity stock : stocksList) {
-            userStockBalance.id_user = user.id;
-            userStockBalance.id_stock = stock.id;
-            userStockBalance.stock_symbol = stock.stock_symbol;
-            userStockBalance.stock_name = stock.stock_name;
-            userStockBalance.volume = stocksVolume;
+            userStockBalance.setIdUser(user.getId());
+            userStockBalance.setIdStock(stock.getId());
+            userStockBalance.setStockSymbol(stock.getStockSymbol());
+            userStockBalance.setStockName(stock.getStockName());
+            userStockBalance.setVolume(stocksVolume);
 
-            balanceResult = userStockBalanceRepository.createOrUpdateBalances(List.of(userStockBalance));
+            balanceResult = userStockBalanceRepository.createOrUpdateBalances(List.of(userStockBalance).asJava());
             // Get exception if it happens
             if (balanceResult.isLeft())
                 exception = balanceResult.getLeft();

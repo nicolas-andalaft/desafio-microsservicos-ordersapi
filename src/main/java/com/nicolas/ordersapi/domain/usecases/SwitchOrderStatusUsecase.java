@@ -23,15 +23,14 @@ public class SwitchOrderStatusUsecase implements IUsecase<OrderEntity, OrderEnti
         if (switchResult.isLeft())
             return switchResult;
 
-        var stock = new StockEntity();
-        stock.id = switchResult.get().id_stock;
+        var stock = new StockEntity(switchResult.get().getId());
 
         var bidAskResult = orderRepository.getStockBidAsk(stock);
         if (bidAskResult.isLeft())
             return Either.left(bidAskResult.getLeft());
 
         var newStock = bidAskResult.get();
-        newStock.id = stock.id;
+        newStock.setId(stock.getId());
 
         var updateBidAskResult = stockRepository.forceUpdateBidAsk(newStock);
         if (updateBidAskResult.isLeft())

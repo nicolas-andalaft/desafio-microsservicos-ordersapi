@@ -13,12 +13,9 @@ public class PostgreUserDatasource extends PostgreDatasource implements IUserDat
 	}
 
     public Either<Exception, UserEntity> getUser(UserEntity user) {
-		var sqlString = String.format("SELECT * FROM %s WHERE username = '%s'", super.tableName, user.username);
+		var sqlString = String.format("SELECT * FROM %s WHERE username = '%s'", super.tableName, user.getUsername());
 
-		return super.execute(sqlString).map((list) -> { 
-			if (list.length() != 1) return null;
-			return UserModel.fromMap(list.get(0));
-		});
+		return super.execute(sqlString).map(list -> UserModel.fromMap(list.get(0)));
     }
 
 	@Override
@@ -26,22 +23,16 @@ public class PostgreUserDatasource extends PostgreDatasource implements IUserDat
 		var sqlString = String.format("INSERT INTO %s(%s,%s,%s) VALUES('%s','%s',%s) RETURNING *", 
 		super.tableName, 
 		"username", "password", "dollar_balance", 
-		user.username, "", user.dollar_balance);
+		user.getUsername(), "", user.getDollarBalance());
 
-		return super.execute(sqlString).map((list) -> { 
-			if (list.length() != 1) return null;
-			return UserModel.fromMap(list.get(0));
-		});
+		return super.execute(sqlString).map(list -> UserModel.fromMap(list.get(0)));
 	}
 
 	@Override
 	public Either<Exception, UserEntity> adjustDollarBalance(UserEntity user) {
 		var sqlString = String.format("UPDATE %s SET dollar_balance = dollar_balance + %s WHERE id = %s RETURNING *", 
-		super.tableName, user.dollar_balance, user.id);
+		super.tableName, user.getDollarBalance(), user.getId());
 
-		return super.execute(sqlString).map((list) -> { 
-			if (list.length() != 1) return null;
-			return UserModel.fromMap(list.get(0));
-		});
+		return super.execute(sqlString).map(list -> UserModel.fromMap(list.get(0)));
 	}
 }

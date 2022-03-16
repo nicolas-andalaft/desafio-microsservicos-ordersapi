@@ -3,8 +3,13 @@ package com.nicolas.ordersapi.data.utils;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class MapGetter {
+    private static Logger logger = Logger.getLogger("Logger");
+
+    private MapGetter() {}
 
     public static Integer getInteger(Map<String, Object> map, String key) {
         try { 
@@ -14,7 +19,7 @@ public class MapGetter {
             return Integer.parseInt(value.toString());
         } 
         catch (Exception e) { 
-            ErrorMessage(e, key);
+            errorMessage(e, key);
             return null; 
         }
     }
@@ -27,7 +32,7 @@ public class MapGetter {
             return Long.parseLong(value.toString());
         } 
         catch (Exception e) { 
-            ErrorMessage(e, key);
+            errorMessage(e, key);
             return null; 
         }
     }
@@ -40,7 +45,7 @@ public class MapGetter {
             return value.toString();
         } 
         catch (Exception e) { 
-            ErrorMessage(e, key);
+            errorMessage(e, key);
             return null; 
         }
     }
@@ -53,7 +58,7 @@ public class MapGetter {
             return Float.parseFloat(value.toString());
         } 
         catch (Exception e) { 
-            ErrorMessage(e, key);
+            errorMessage(e, key);
             return null; 
         }
     }
@@ -67,7 +72,7 @@ public class MapGetter {
             return BigDecimal.valueOf(doubleValue);
         } 
         catch (Exception e) { 
-            ErrorMessage(e, key);
+            errorMessage(e, key);
             return null; 
         }
     }
@@ -78,16 +83,17 @@ public class MapGetter {
             if (value == null) return null;
             
             String dateString = value.toString().replace('T', ' ');
-            dateString = dateString.substring(0, 23);
+            dateString = dateString.substring(0, 24);
             return Timestamp.valueOf(dateString);
         } 
         catch (Exception e) { 
-            ErrorMessage(e, key);
+            errorMessage(e, key);
             return null; 
         }
     }
     
-    private static void ErrorMessage(Exception e, String object) {
-        System.out.println("Map key '" + object + "' caused error: " + e.getMessage());
+    private static void errorMessage(Exception e, String object) {
+        var message = String.format("Map key '%s' caused error: %s", object, e.getMessage());
+        logger.log(Level.FINE, message);
     }
 }

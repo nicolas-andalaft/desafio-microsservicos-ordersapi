@@ -1,51 +1,53 @@
 package com.nicolas.ordersapi.data.models;
 
+import java.util.HashMap;
 import java.util.Map;
 
+import com.nicolas.ordersapi.core.IModel;
 import com.nicolas.ordersapi.data.utils.MapGetter;
 import com.nicolas.ordersapi.domain.entities.UserStockBalanceEntity;
 
-import io.vavr.collection.HashMap;
-
-public class UserStockBalanceModel extends UserStockBalanceEntity {
+public class UserStockBalanceModel extends UserStockBalanceEntity implements IModel<UserStockBalanceEntity> {
 
     public UserStockBalanceModel() {}
 
     public UserStockBalanceModel(UserStockBalanceEntity userStockBalance) {
-        this.id_user = userStockBalance.id_user;
-        this.id_stock = userStockBalance.id_stock;
-        this.stock_symbol = userStockBalance.stock_symbol;
-        this.stock_name = userStockBalance.stock_name;
-        this.volume = userStockBalance.volume;
-        this.created_on = userStockBalance.created_on;
-        this.updated_on = userStockBalance.updated_on;
+        this.idUser = userStockBalance.getIdUser();
+        this.idStock = userStockBalance.getIdStock();
+        this.stockSymbol = userStockBalance.getStockSymbol();
+        this.stockName = userStockBalance.getStockName();
+        this.volume = userStockBalance.getVolume();
+        this.createdOn = userStockBalance.getCreatedOn();
+        this.updatedOn = userStockBalance.getUpdatedOn();
     }
     
     public static UserStockBalanceModel fromMap(Map<String, Object> map) {
         UserStockBalanceModel userStockBalance = new UserStockBalanceModel();
+        if (map == null) return userStockBalance;
         
-        userStockBalance.id_user = MapGetter.getLong(map, "id_user");
-        userStockBalance.id_stock = MapGetter.getLong(map, "id_stock");
-        userStockBalance.stock_symbol = MapGetter.getString(map, "stock_symbol");
-        userStockBalance.stock_name = MapGetter.getString(map, "stock_name");
+        userStockBalance.idUser = MapGetter.getLong(map, "id_user");
+        userStockBalance.idStock = MapGetter.getLong(map, "id_stock");
+        userStockBalance.stockSymbol = MapGetter.getString(map, "stock_symbol");
+        userStockBalance.stockName = MapGetter.getString(map, "stock_name");
         userStockBalance.volume = MapGetter.getLong(map, "volume");
-        userStockBalance.created_on = MapGetter.getTimestamp(map, "created_on");
-        userStockBalance.updated_on = MapGetter.getTimestamp(map, "updated_on");
+        userStockBalance.createdOn = MapGetter.getTimestamp(map, "created_on");
+        userStockBalance.updatedOn = MapGetter.getTimestamp(map, "updated_on");
         
         return userStockBalance;
-    }   
-        
-    public static Map<String, Object> toMap(UserStockBalanceEntity userStockBalance) {
-        HashMap<String, Object> map = HashMap.of(
-            "id_user", userStockBalance.id_user,
-            "id_stock", userStockBalance.id_stock,
-            "stock_symbol", userStockBalance.stock_symbol,
-            "stock_name", userStockBalance.stock_name,
-            "volume", userStockBalance.volume,
-            "created_on", userStockBalance.created_on,
-            "updated_on", userStockBalance.updated_on
-        );
+    }  
 
-        return map.toJavaMap();
+    @Override
+    public Map<String, Object> toMap(UserStockBalanceEntity userStockBalance) {
+        Map<String, Object> map = new HashMap<>();
+
+        map.put("id_user", userStockBalance.getIdUser());
+        map.put("id_stock", userStockBalance.getIdStock());
+        map.put("stock_symbol", userStockBalance.getStockSymbol());
+        map.put("stock_name", userStockBalance.getStockName());
+        map.put("volume", userStockBalance.getVolume());
+        map.put("created_on", userStockBalance.getCreatedOn());
+        map.put("updated_on", userStockBalance.getUpdatedOn());
+
+        return map;
     }
 }

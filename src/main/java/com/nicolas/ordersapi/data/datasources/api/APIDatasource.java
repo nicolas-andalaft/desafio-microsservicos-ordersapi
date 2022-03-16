@@ -1,8 +1,10 @@
-package com.nicolas.ordersapi.data.datasources.API;
+package com.nicolas.ordersapi.data.datasources.api;
 
+import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.ArrayList;
@@ -17,7 +19,7 @@ public class APIDatasource {
 
     @SuppressWarnings("unchecked")
 	protected Either<Exception, List<Map<String, Object>>> execute(String urlString, Map<String, Object> body, boolean expectList) {
-        java.util.List<Map<String, Object>> result = new ArrayList<Map<String, Object>>();
+        java.util.List<Map<String, Object>> result = new ArrayList<>();
 
         try {
             String response = connect(urlString, body);
@@ -40,7 +42,7 @@ public class APIDatasource {
         return Either.right(List.ofAll(result));
     }
 
-    private String connect(String urlString, Map<String, Object> body) throws Exception {
+    private String connect(String urlString, Map<String, Object> body) throws IOException {
         
         var url = new URL(urlString);
         var conn = (HttpURLConnection) url.openConnection();
@@ -57,7 +59,7 @@ public class APIDatasource {
             String jsonInputString = new ObjectMapper().writeValueAsString(body);
             
             var stream = conn.getOutputStream();
-            var streamWriter = new OutputStreamWriter(stream, "utf-8");
+            var streamWriter = new OutputStreamWriter(stream, StandardCharsets.UTF_8);
 
             streamWriter.write(jsonInputString);
             streamWriter.flush();
@@ -69,16 +71,16 @@ public class APIDatasource {
                 
         int responseCode = conn.getResponseCode();
         if (responseCode != 200)
-            throw new Exception("Network error status code " + responseCode);
+            throw new IOException("Network error status code " + responseCode);
 
-        String response = "";
+        var response = new StringBuilder();
         var scanner = new Scanner(conn.getInputStream());
 
         while (scanner.hasNext()) {
-            response += scanner.nextLine();
+            response.append(scanner.nextLine());
         }
         scanner.close();
 
-        return response;
+        return response.toString();
     }
 }

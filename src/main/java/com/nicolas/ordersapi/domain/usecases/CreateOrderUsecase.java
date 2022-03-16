@@ -27,28 +27,30 @@ public class CreateOrderUsecase implements IUsecase<OrderEntity, OrderEntity> {
 
     @Override
     public Either<Exception, OrderEntity> call(OrderEntity order) {
-        if (!(order.type == 0 || order.type == 1))
+        if (!(order.getType() == 0 || order.getType() == 1))
             return Either.left(new Exception("type property incorrect"));
 
         // Check if user has said stock to sell
-        if (order.type == 1) {
+        if (order.getType() == 1) {
             var result = userHasStock(order);
             if (result.isLeft()) 
                 return Either.left(result.getLeft());
         }
 
         // Get correct stock name and symbol
-        var stockResult = getStockData(order.id_stock);
+        var idStock = order.getIdStock();
+        var stockResult = stockRepository.getStock(new StockEntity(idStock));
         if (stockResult.isLeft())
             return Either.left(stockResult.getLeft());
 
-        order.stock_name = stockResult.get().stock_name;
-        order.stock_symbol = stockResult.get().stock_symbol;
+        var stock = stockResult.get();
+        order.setStockName(stock.getStockName());
+        order.setStockSymbol(stock.getStockSymbol());
 
         // Return created order
         var orderResult = createOrder(order);
         if (orderResult.isLeft())
-        return Either.left(orderResult.getLeft());
+            return Either.left(orderResult.getLeft());
         
         order = orderResult.get();
 
@@ -62,8 +64,8 @@ public class CreateOrderUsecase implements IUsecase<OrderEntity, OrderEntity> {
 
     private Either<Exception, Object> userHasStock(OrderEntity order) {
         var userStockBalance = new UserStockBalanceEntity();
-        userStockBalance.id_user = order.id_user;
-        userStockBalance.id_stock = order.id_stock;
+        userStockBalance.setIdUser(order.getIdUser());
+        userStockBalance.setIdStock(order.getIdStock());
 
         var result = userStockBalanceRepository.getUserStockBalance(userStockBalance);
         if (result.isLeft())
@@ -75,16 +77,9 @@ public class CreateOrderUsecase implements IUsecase<OrderEntity, OrderEntity> {
         return Either.right(null);
     }
 
-    private Either<Exception, StockEntity> getStockData(Long id_stock) {
-        var stock = new StockEntity();
-        stock.id = id_stock;
-
-        return stockRepository.getStock(stock);
-    }
-
     private Either<Exception, OrderEntity> createOrder(OrderEntity order) {
         // "open" status default value
-        order.status = 1;
+        order.setStatus(1);
 
         return orderRepository.createOrder(order);
     }

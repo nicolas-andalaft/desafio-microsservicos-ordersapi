@@ -31,8 +31,8 @@ public class CheckForOrderMatchUsecase implements IUsecase<OrderEntity, Object>{
     }
 
     // Transaction values
-    long transaction_volume;
-    double transaction_price;
+    private long transactionVolume;
+    private double transactionPrice;
 
     @Override
     public Either<Exception, Object> call(OrderEntity order) {
@@ -43,11 +43,11 @@ public class CheckForOrderMatchUsecase implements IUsecase<OrderEntity, Object>{
         var matches = response.get(); 
             
         // Return false if no match was found
-        if (matches.size() == 0)
+        if (matches.isEmpty())
             return Either.right(false);
 
         Either<Exception, Object> result;
-        for (int i = 0; order.status == 1 && i < matches.size(); i++) {
+        for (int i = 0; order.getStatus() == 1 && i < matches.size(); i++) {
 
             result = checkMatch(order, matches.get(i));
             if (result.isLeft())
@@ -59,9 +59,9 @@ public class CheckForOrderMatchUsecase implements IUsecase<OrderEntity, Object>{
 
     private Either<Exception, Object> checkMatch(OrderEntity order, OrderEntity match) {
         // Set transaction values
-        transaction_volume = Math.min(match.volume, order.volume);
-        transaction_price = Math.min(match.price.doubleValue(), order.price.doubleValue());
-        transaction_price *= transaction_volume;
+        transactionVolume = Math.min(match.getVolume(), order.getVolume());
+        transactionPrice = Math.min(match.getPrice().doubleValue(), order.getPrice().doubleValue());
+        transactionPrice *= transactionVolume;
 
         Exception anyException = null;
 
@@ -94,14 +94,14 @@ public class CheckForOrderMatchUsecase implements IUsecase<OrderEntity, Object>{
 
     private Either<Exception, Object> adjustOrders(OrderEntity order, OrderEntity match) {
         // Deactivates order if all volume was used
-        order.status = transaction_volume == order.volume ? 0 : 1;
-        match.status = transaction_volume == match.volume ? 0 : 1;
+        order.setStatus(transactionVolume == order.getVolume() ? 0 : 1);
+        match.setStatus(transactionVolume == match.getVolume() ? 0 : 1);
 
         // Remove used volume
-        order.volume -= transaction_volume;
-        match.volume -= transaction_volume;
+        order.adjustVolume(-transactionVolume);
+        match.adjustVolume(-transactionVolume);
 
-        return orderRepository.updateOrders(List.of(order, match));
+        return orderRepository.updateOrders(List.of(order, match).asJava());
     }
 
     private Either<Exception, Object> adjustBalances(OrderEntity order, OrderEntity match) {
@@ -111,20 +111,20 @@ public class CheckForOrderMatchUsecase implements IUsecase<OrderEntity, Object>{
         for (OrderEntity orderEntity : orderList) {
             var balance = new UserStockBalanceEntity();
 
-            balance.id_user = orderEntity.id_user;
-            balance.id_stock = orderEntity.id_stock;
-            balance.stock_name = orderEntity.stock_name;
-            balance.stock_symbol = orderEntity.stock_symbol;
-            balance.volume = transaction_volume;
+            balance.setIdUser(orderEntity.getIdUser());
+            balance.setIdStock(orderEntity.getIdStock());
+            balance.setStockName(orderEntity.getStockName());
+            balance.setStockSymbol(orderEntity.getStockSymbol());
+            balance.setVolume(transactionVolume);
             
             // Remove volume if order is of type sell
-            if (orderEntity.type == 1)
-                balance.volume *= -1;
+            if (orderEntity.getType() == 1)
+                balance.invertVolume();
 
             balanceList.add(balance);
         }
 
-        return userStockBalanceRepository.createOrUpdateBalances(List.ofAll(balanceList));
+        return userStockBalanceRepository.createOrUpdateBalances(balanceList);
     }
 
     private Either<Exception, Object> adjustDollarBalance(OrderEntity order, OrderEntity match) {
@@ -135,12 +135,12 @@ public class CheckForOrderMatchUsecase implements IUsecase<OrderEntity, Object>{
         for (OrderEntity orderEntity : orderList) {
             var user = new UserEntity();
 
-            user.id = orderEntity.id_user;
-            user.dollar_balance = BigDecimal.valueOf(transaction_price);
+            user.setId(orderEntity.getId());
+            user.setDollarBalance(BigDecimal.valueOf(transactionPrice));
 
             // Remove dollar balance if order is of type buy
-            if (orderEntity.type == 0)
-            user.dollar_balance = user.dollar_balance.negate();
+            if (orderEntity.getType() == 0) 
+                user.setDollarBalance(user.getDollarBalance().negate());           
 
             result = userRepository.adjustDollarBalance(user);
             if (result.isLeft())
@@ -156,12 +156,12 @@ public class CheckForOrderMatchUsecase implements IUsecase<OrderEntity, Object>{
     private Either<Exception, OrderHistoryEntity> createOrderHistory(OrderEntity order, OrderEntity match) {
         var orderHistory = new OrderHistoryEntity();
         
-        orderHistory.order_user(order.id_user);
-        orderHistory.match_user(match.id_user);
-        orderHistory.order(order.id);
-        orderHistory.match(match.id);
-        orderHistory.transaction_volume = transaction_volume;
-        orderHistory.transaction_price = BigDecimal.valueOf(transaction_price);
+        orderHistory.setOrderUser(order.getIdUser());
+        orderHistory.setMatchUser(match.getIdUser());
+        orderHistory.setOrder(order.getId());
+        orderHistory.setMatch(match.getId());
+        orderHistory.setTransactionVolume(transactionVolume);
+        orderHistory.setTransactionPrice(BigDecimal.valueOf(transactionPrice));
         
         return orderRepository.createOrderHistory(orderHistory);
     }

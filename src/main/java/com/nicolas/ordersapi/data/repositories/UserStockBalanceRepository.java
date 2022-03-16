@@ -1,12 +1,13 @@
 package com.nicolas.ordersapi.data.repositories;
 
+import java.util.List;
+
 import com.nicolas.ordersapi.data.datasources.IUserStockBalanceDatasource;
 import com.nicolas.ordersapi.data.models.UserStockBalanceModel;
 import com.nicolas.ordersapi.domain.entities.UserEntity;
 import com.nicolas.ordersapi.domain.entities.UserStockBalanceEntity;
 import com.nicolas.ordersapi.domain.repositories.IUserStockBalanceRepository;
 
-import io.vavr.collection.List;
 import io.vavr.control.Either;
 
 public class UserStockBalanceRepository implements IUserStockBalanceRepository {
@@ -19,7 +20,7 @@ public class UserStockBalanceRepository implements IUserStockBalanceRepository {
 
     @Override
     public Either<Exception, List<UserStockBalanceEntity>> getUserBalance(UserEntity user) {
-        return datasource.getUserBalance(user);
+        return datasource.getUserBalance(user).map(io.vavr.collection.List::asJava);
     }
 
     @Override

@@ -1,11 +1,16 @@
-package com.nicolas.ordersapi.presentation.API;
+package com.nicolas.ordersapi.presentation.api;
 
+import java.util.List;
 import java.util.Map;
 
+import com.nicolas.ordersapi.core.IModel;
 import com.nicolas.ordersapi.data.datasources.*;
-import com.nicolas.ordersapi.data.datasources.API.StockAPIDatasource;
+import com.nicolas.ordersapi.data.datasources.api.StockAPIDatasource;
 import com.nicolas.ordersapi.data.datasources.postgre.*;
+import com.nicolas.ordersapi.data.models.OrderHistoryModel;
 import com.nicolas.ordersapi.data.models.OrderModel;
+import com.nicolas.ordersapi.data.models.UserModel;
+import com.nicolas.ordersapi.data.models.UserStockBalanceModel;
 import com.nicolas.ordersapi.data.repositories.*;
 import com.nicolas.ordersapi.domain.entities.OrderEntity;
 import com.nicolas.ordersapi.domain.entities.OrderHistoryEntity;
@@ -74,13 +79,21 @@ class OrdersAPI {
 		switchOrderHistoryStatusUsecase = new SwitchOrderHistoryStatusUsecase(orderRepository);
 	}
 
-	private final String getOrCreateUser = "/user/{email}";
-	private final String getUserStockBalance = "/user/{id}/balance";
-	private final String getUserOrders = "/user/{id}/orders";
-	private final String getUserOrdersHistory = "/user/{id}/orders/history/{status}";
-	private final String createOrder = "/orders/new";
-	private final String switchUserOrder = "/orders/{id}/switch";
-	private final String switchUserOrderHistory = "/orders/history/{id}/switch";
+	private static final String WRONG_PARAMETER_MESSAGE = "Parameter in wrong format";
+
+	// Models
+	private static final OrderHistoryModel ORDER_HISTORY_MODEL = new OrderHistoryModel();
+	private static final OrderModel ORDER_MODEL = new OrderModel();
+	private static final UserModel USER_MODEL = new UserModel();
+	private static final UserStockBalanceModel USER_STOCK_BALANCE_MODEL = new UserStockBalanceModel();
+
+	private static final String GET_OR_CREATE_USER = "/user/{email}";
+	private static final String GET_USER_STOCK_BALANCE = "/user/{id}/balance";
+	private static final String GET_USER_ORDERS = "/user/{id}/orders";
+	private static final String GET_USER_ORDERS_HISTORY = "/user/{id}/orders/history/{status}";
+	private static final String CREATE_ORDER = "/orders/new";
+	private static final String SWITCH_USER_ORDER = "/orders/{id}/switch";
+	private static final String SWITCH_USER_ORDER_HISTORY = "/orders/history/{id}/switch";
 
 	@GetMapping("/")
 	public String root() { return "OrdersAPI"; }
@@ -88,96 +101,81 @@ class OrdersAPI {
 	@GetMapping("/error")
 	public String error() { return "Endpoint doesn't exist"; }
 	
-	@GetMapping(getOrCreateUser)
-	public ResponseEntity<?> getOrCreateUser(@PathVariable String email) {
+	@GetMapping(GET_OR_CREATE_USER)
+	public ResponseEntity<Object> getOrCreateUser(@PathVariable String email) {
 		if (email.isBlank()) 
 			return returnBadRequest(Either.left("No email object found"));
 
 		// Create User entity
 		var user = new UserEntity();
-		user.username = email.toString();
+		user.setUsername(email);
 
 		// Open connection
 		PostgreDatasource.openConnection();
 		
 		var result = getOrCreUsecase.call(user);
 		
-		if (result.isLeft()) 
-			return returnServerError(result);
-		else
-			return returnOk(result);
+		return returnEntity(result, USER_MODEL);
 	}
 
-	@GetMapping(getUserStockBalance)
-	public ResponseEntity<?> getUserStockBalance(@PathVariable String id) {
-		Long id_user = null;
+	@GetMapping(GET_USER_STOCK_BALANCE)
+	public ResponseEntity<Object> getUserStockBalance(@PathVariable String id) {
+		Long idUser = null;
 		try {
-			id_user = Long.parseLong(id);
+			idUser = Long.parseLong(id);
 		} catch (Exception e) {
-			returnBadRequest(Either.left("Parameter in wrong format"));
+			returnBadRequest(Either.left(WRONG_PARAMETER_MESSAGE));
 		}
 
-		var user = new UserEntity();
-		user.id = id_user;
-
+		var user = new UserEntity(idUser);
 		var result = getUserStockBalanceUsecase.call(user);
 
-		if (result.isLeft())
-			return returnServerError(result);
-		else
-			return returnOk(result);
+		return returnList(result, USER_STOCK_BALANCE_MODEL);
 	}
 
-	@GetMapping(getUserOrders)
-	public ResponseEntity<?> getUserOrders(@PathVariable String id) {
-		Long id_user;
+	@GetMapping(GET_USER_ORDERS)
+	public ResponseEntity<Object> getUserOrders(@PathVariable String id) {
+		Long idUser;
 		try {
-			id_user = Long.parseLong(id);
+			idUser = Long.parseLong(id);
 		} catch (Exception e) {
 			return returnBadRequest(Either.left("User id with wrong type"));
 		}
 
-		var user = new UserEntity();
-		user.id = id_user;
+		var user = new UserEntity(idUser);
 		var result = getUserOrdersUsecase.call(user);
 
-		if (result.isLeft())
-			return returnServerError(result);
-		else
-			return returnOk(result);
+		return returnList(result, ORDER_MODEL);
 	}
 
-	@GetMapping(getUserOrdersHistory)
-	public ResponseEntity<?> getUserOrdersHistory(@PathVariable String id, @PathVariable String status) {
-		Long id_user;
-		Integer status_value;
+	@GetMapping(GET_USER_ORDERS_HISTORY)
+	public ResponseEntity<Object> getUserOrdersHistory(@PathVariable String id, @PathVariable String status) {
+		Long idUser;
+		Integer statusValue;
 		try {
-			id_user = Long.parseLong(id);
+			idUser = Long.parseLong(id);
 
-			status_value = Integer.parseInt(status);
+			statusValue = Integer.parseInt(status);
 			// -1 returns all values
-			if (status_value == -1)
-				status_value = null;
+			if (statusValue == -1)
+				statusValue = null;
 
 		} catch (Exception e) {
-			return returnBadRequest(Either.left("Parameters with wrong type"));
+			return returnBadRequest(Either.left(WRONG_PARAMETER_MESSAGE));
 		}
 
 		var orderHistory = new OrderHistoryEntity();
-		orderHistory.order_user(id_user);
-		orderHistory.status = status_value;
+		orderHistory.setOrderUser(idUser);
+		orderHistory.setStatus(statusValue);
 
 		var result = getUserOrdersHistoryUsecase.call(orderHistory);
 
-		if (result.isLeft())
-			return returnServerError(result);
-		else
-			return returnOk(result);
+		return returnList(result, ORDER_HISTORY_MODEL);
 	}
 
-	@PostMapping(createOrder)
+	@PostMapping(CREATE_ORDER)
 	@SuppressWarnings("unchecked")
-	public ResponseEntity<?> createOrder(@RequestBody Map<String, Map<String, Object>> req) {
+	public ResponseEntity<Object> createOrder(@RequestBody Map<String, Map<String, Object>> req) {
         var data = req.get("body");
 		var orderMap = data.get("order");
 		
@@ -198,73 +196,77 @@ class OrdersAPI {
 		
 		var result = checkForOrderMatchUsecase.call(orderResult.get());
 
-		if (result.isLeft())
-			return returnServerError(result);
-		else 
-			return returnOk(result);
+		return returnObject(result);
 		
 	}
 
-	@GetMapping(switchUserOrder)
-	public ResponseEntity<?> switchUserOrder(@PathVariable String id) {
-		Long order_id = null;
+	@GetMapping(SWITCH_USER_ORDER)
+	public ResponseEntity<Object> switchUserOrder(@PathVariable String id) {
+		Long orderId = null;
 
 		try {
-			order_id = Long.parseLong(id);
+			orderId = Long.parseLong(id);
 		}
 		catch (Exception e) {
-			returnBadRequest(Either.left("Parameter in wrong format"));
+			returnBadRequest(Either.left(WRONG_PARAMETER_MESSAGE));
 		}
 
-		var order = new OrderEntity();
-		order.id = order_id;
+		var order = new OrderEntity(orderId);
 		var result = switchOrderStatusUsecase.call(order);
 
-		if (result.isLeft())
-			return returnServerError(result);
-		else
-			return returnOk(result);
+		return returnEntity(result, ORDER_MODEL);
 	}
 
-	@GetMapping(switchUserOrderHistory)
-	public ResponseEntity<?> switchUserOrderHistory(@PathVariable String id) {
-		Long order_id = null;
+	@GetMapping(SWITCH_USER_ORDER_HISTORY)
+	public ResponseEntity<Object> switchUserOrderHistory(@PathVariable String id) {
+		Long orderId = null;
 
 		try {
-			order_id = Long.parseLong(id);
+			orderId = Long.parseLong(id);
 		}
 		catch (Exception e) {
-			returnBadRequest(Either.left("Parameter in wrong format"));
+			returnBadRequest(Either.left(WRONG_PARAMETER_MESSAGE));
 		}
 
-		var orderHistory = new OrderHistoryEntity();
-		orderHistory.id = order_id;
+		var orderHistory = new OrderHistoryEntity(orderId);
 		var result = switchOrderHistoryStatusUsecase.call(orderHistory);
+
+		return returnEntity(result, ORDER_HISTORY_MODEL);
+	}
+
+	private ResponseEntity<Object> returnObject(Either<Exception, ?> result) {
+		PostgreDatasource.closeConnection();
 
 		if (result.isLeft())
 			return returnServerError(result);
-		else
-			return returnOk(result);
+
+		return ResponseEntity.ok(result.get());
 	}
 
-	private ResponseEntity<?> returnServerError(Either<?,?> result) {
+	private <A> ResponseEntity<Object> returnEntity(Either<Exception, A> result, IModel<A> model) {
 		PostgreDatasource.closeConnection();
-
-		var response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result.getLeft());
-		return response;
-	}
-	
-	private ResponseEntity<?> returnBadRequest(Either<?,?> result) {
-		PostgreDatasource.closeConnection();
-
-		var response = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result.getLeft());
-		return response;
+		
+		if (result.isLeft())
+			return returnServerError(result);
+		
+		return ResponseEntity.ok(model.toMap(result.get()));
 	}
 	
-	private ResponseEntity<?> returnOk(Either<?,?> result) {
+	private <A> ResponseEntity<Object> returnList(Either<Exception, List<A>> result, IModel<A> model) {
 		PostgreDatasource.closeConnection();
 
-		var response = ResponseEntity.status(HttpStatus.OK).body(result.get());
-		return response;
+		if (result.isLeft())
+			return returnServerError(result);
+
+		var body = result.get().stream().map(model::toMap);
+		return ResponseEntity.ok(body);
+	}
+	
+	private ResponseEntity<Object> returnServerError(Either<?,?> result) {
+		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result.getLeft());
+	}
+
+	private ResponseEntity<Object> returnBadRequest(Either<?,?> result) {
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result.getLeft());
 	}
 }
