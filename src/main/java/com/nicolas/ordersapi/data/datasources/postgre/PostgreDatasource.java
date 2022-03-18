@@ -83,9 +83,9 @@ public abstract class PostgreDatasource {
         
 		Connection conn = gonnResult.get();
 		
-		try(var statement = conn.createStatement();) {
+		try(var statement = conn.prepareStatement(sqlString);) {
 			
-			var rs = statement.executeQuery(sqlString);
+			var rs = statement.executeQuery();
 			var response = ResultConverter.toMapList(rs);
 			result = Either.right(response);
 
