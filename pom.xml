@@ -73,8 +73,8 @@
 				<version>6.5.5</version>
 				<configuration> 
 					<url>jdbc:postgresql://localhost:5432/orders_db</url> 
-					<user>postgres</user> 
-					<password>postgres</password>
+					<user>${env.SERVER_USERNAME}</user> 
+					<password>${env.SERVER_PASSWORD}</password>
 					<locations>db/migration</locations> 
 					<baselineOnMigrate>true</baselineOnMigrate>
 				</configuration>
